@@ -1,0 +1,189 @@
+---
+import Base from '../layouts/Base.astro'
+---
+<Base title="Admin · Contenido">
+  <div id="login-view" class="login-wrap">
+    <div class="login-box">
+      <h1>Admin</h1>
+      <div class="field">
+        <input id="pwd-input" type="password" class="input" placeholder="Contraseña" />
+      </div>
+      <button id="login-btn" class="btn" style="width:100%">Entrar</button>
+    </div>
+  </div>
+
+  <div id="admin-view" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <a href="/" class="back" style="margin:0">← volver</a>
+      <span id="article-count" class="date"></span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="list">Artículos</button>
+      <button class="tab" data-tab="new">Nuevo</button>
+    </div>
+
+    <!-- Lista -->
+    <div id="tab-list">
+      <div id="items-list" class="list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Nuevo artículo -->
+    <div id="tab-new" style="display:none">
+      <div class="hint">Pegá el contenido generado por Claude Code — título, markdown y metadatos.</div>
+      <div class="field">
+        <label class="label">Título *</label>
+        <input id="f-title" type="text" class="input" placeholder="Título del artículo" />
+      </div>
+      <div class="field">
+        <label class="label">Slug (URL) *</label>
+        <input id="f-slug" type="text" class="input" placeholder="mi-articulo" />
+      </div>
+      <div class="field">
+        <label class="label">Contenido en Markdown *</label>
+        <textarea id="f-content" class="input" rows="12" placeholder="# Título&#10;&#10;Contenido en markdown..."></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Resumen</label>
+        <input id="f-excerpt" type="text" class="input" placeholder="Una línea que describe el artículo" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="label">Categoría</label>
+          <input id="f-category" type="text" class="input" placeholder="Ej: Tecnología" />
+        </div>
+        <div class="field">
+          <label class="label">Tags (separados por coma)</label>
+          <input id="f-tags" type="text" class="input" placeholder="ai, web, ideas" />
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem">
+        <input id="f-published" type="checkbox" checked style="accent-color:var(--accent);width:16px;height:16px" />
+        <label for="f-published" style="font-size:.9rem;color:var(--muted)">Publicar inmediatamente</label>
+      </div>
+      <button id="save-btn" class="btn">Guardar artículo</button>
+    </div>
+  </div>
+</Base>
+
+<script>
+  let pwd = ''
+  const headers = () => ({ 'x-admin-password': pwd, 'Content-Type': 'application/json' })
+
+  // — Auth —
+  document.getElementById('login-btn')!.addEventListener('click', login)
+  document.getElementById('pwd-input')!.addEventListener('keydown', (e) => {
+    if ((e as KeyboardEvent).key === 'Enter') login()
+  })
+
+  async function login() {
+    pwd = (document.getElementById('pwd-input') as HTMLInputElement).value
+    const res = await fetch('/api/content', { headers: { 'x-admin-password': pwd } })
+    if (res.ok) {
+      document.getElementById('login-view')!.style.display = 'none'
+      document.getElementById('admin-view')!.style.display = 'block'
+      loadList()
+    } else {
+      alert('Contraseña incorrecta')
+    }
+  }
+
+  // — Tabs —
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = (btn as HTMLElement).dataset.tab!
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      document.getElementById('tab-list')!.style.display = tab === 'list' ? 'block' : 'none'
+      document.getElementById('tab-new')!.style.display = tab === 'new' ? 'block' : 'none'
+    })
+  })
+
+  // — List —
+  async function loadList() {
+    const res = await fetch('/api/content?limit=100')
+    const data = await res.json()
+    const items = data.items || []
+    document.getElementById('article-count')!.textContent = `${items.length} artículos`
+
+    const el = document.getElementById('items-list')!
+    if (!items.length) {
+      el.innerHTML = '<p class="empty">Sin artículos aún</p>'
+      return
+    }
+    el.innerHTML = items.map((item: any) => `
+      <div class="card" style="display:flex;align-items:center;gap:.75rem;cursor:default">
+        <div style="flex:1;min-width:0">
+          <a href="/article/${item.slug}" style="font-weight:600;color:#fff;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">
+            ${item.title}
+          </a>
+          <span class="date">${item.category} · ${new Date(item.createdAt).toLocaleDateString('es')}</span>
+        </div>
+        <button class="btn danger" style="padding:.35rem .7rem;font-size:.78rem;flex-shrink:0" data-id="${item._id}">Eliminar</button>
+      </div>
+    `).join('')
+
+    el.querySelectorAll('[data-id]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar este artículo?')) return
+        const id = (btn as HTMLElement).dataset.id!
+        await fetch(`/api/content?id=${id}`, { method: 'DELETE', headers: { 'x-admin-password': pwd } })
+        loadList()
+      })
+    })
+  }
+
+  // — Save —
+  const titleEl = document.getElementById('f-title') as HTMLInputElement
+  const slugEl = document.getElementById('f-slug') as HTMLInputElement
+
+  titleEl.addEventListener('input', () => {
+    if (!slugEl.dataset.manual) {
+      slugEl.value = titleEl.value
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim().replace(/\s+/g, '-')
+    }
+  })
+  slugEl.addEventListener('input', () => { slugEl.dataset.manual = '1' })
+
+  document.getElementById('save-btn')!.addEventListener('click', async () => {
+    const btn = document.getElementById('save-btn') as HTMLButtonElement
+    const title = titleEl.value.trim()
+    const slug = slugEl.value.trim()
+    const content = (document.getElementById('f-content') as HTMLTextAreaElement).value.trim()
+    if (!title || !slug || !content) { alert('Título, slug y contenido son requeridos'); return }
+
+    btn.disabled = true
+    btn.textContent = 'Guardando...'
+
+    const body = {
+      title, slug, content,
+      excerpt: (document.getElementById('f-excerpt') as HTMLInputElement).value.trim(),
+      category: (document.getElementById('f-category') as HTMLInputElement).value.trim() || 'General',
+      tags: (document.getElementById('f-tags') as HTMLInputElement).value.split(',').map(t => t.trim()).filter(Boolean),
+      published: (document.getElementById('f-published') as HTMLInputElement).checked,
+    }
+
+    const res = await fetch('/api/content', { method: 'POST', headers: headers(), body: JSON.stringify(body) })
+    if (res.ok) {
+      btn.textContent = '¡Guardado!'
+      btn.classList.add('success')
+      ;['f-title','f-slug','f-content','f-excerpt','f-category','f-tags'].forEach(id => {
+        (document.getElementById(id) as HTMLInputElement).value = ''
+      })
+      slugEl.removeAttribute('data-manual')
+      loadList()
+      setTimeout(() => {
+        btn.textContent = 'Guardar artículo'
+        btn.classList.remove('success')
+        btn.disabled = false
+      }, 2000)
+    } else {
+      alert('Error al guardar')
+      btn.disabled = false
+      btn.textContent = 'Guardar artículo'
+    }
+  })
+</script>

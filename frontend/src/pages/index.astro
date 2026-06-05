@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro'
+---
+<Base>
+  <div class="search-wrap">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search" type="search" class="input" placeholder="Buscar..." />
+  </div>
+
+  <div id="categories" class="categories"></div>
+  <div id="list" class="list"><div class="spinner"></div></div>
+  <p id="count" class="empty" style="display:none"></p>
+</Base>
+
+<script>
+  let allCategories: string[] = []
+  let activeCategory = ''
+  let searchTimer: ReturnType<typeof setTimeout>
+
+  const listEl = document.getElementById('list')!
+  const catsEl = document.getElementById('categories')!
+  const countEl = document.getElementById('count')!
+  const searchEl = document.getElementById('search') as HTMLInputElement
+
+  async function load(q = '', category = '') {
+    listEl.innerHTML = '<div class="spinner"></div>'
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (category) params.set('category', category)
+    const res = await fetch('/api/content?' + params)
+    const data = await res.json()
+    render(data.items, data.categories)
+  }
+
+  function render(items: any[], categories: string[]) {
+    if (!allCategories.length && categories.length) {
+      allCategories = categories
+      renderCats(categories)
+    }
+
+    if (!items.length) {
+      listEl.innerHTML = ''
+      countEl.textContent = searchEl.value ? `Sin resultados para "${searchEl.value}"` : 'Aún no hay contenido.'
+      countEl.style.display = 'block'
+      return
+    }
+    countEl.style.display = 'none'
+
+    listEl.innerHTML = items.map(item => `
+      <a class="card" href="/article/${item.slug}">
+        <div class="card-meta">
+          <span class="tag">${item.category || 'General'}</span>
+          <span class="date">${new Date(item.createdAt).toLocaleDateString('es', { day:'numeric', month:'short', year:'numeric' })}</span>
+        </div>
+        <h2>${item.title}</h2>
+        ${item.excerpt ? `<p>${item.excerpt}</p>` : ''}
+        ${item.tags?.length ? `<div class="card-tags">${item.tags.slice(0,4).map((t:string) => `<span class="hash">#${t}</span>`).join('')}</div>` : ''}
+      </a>
+    `).join('')
+  }
+
+  function renderCats(categories: string[]) {
+    catsEl.innerHTML = [
+      `<button class="tag ${!activeCategory ? 'active' : ''}" data-cat="">Todo</button>`,
+      ...categories.map(c => `<button class="tag ${activeCategory === c ? 'active' : ''}" data-cat="${c}">${c}</button>`)
+    ].join('')
+
+    catsEl.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = (btn as HTMLButtonElement).dataset.cat || ''
+        catsEl.querySelectorAll('button').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        load(searchEl.value, activeCategory)
+      })
+    })
+  }
+
+  searchEl.addEventListener('input', () => {
+    clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => load(searchEl.value, activeCategory), 350)
+  })
+
+  load()
+</script>

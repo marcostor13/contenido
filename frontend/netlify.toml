@@ -1,0 +1,21 @@
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "api"
+  node_bundler = "esbuild"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 4321
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/article/*"
+  to = "/article/"
+  status = 200

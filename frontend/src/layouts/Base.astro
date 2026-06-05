@@ -1,0 +1,33 @@
+---
+interface Props {
+  title?: string
+  description?: string
+}
+const { title = 'Contenido', description = 'Mi base de conocimiento personal' } = Astro.props
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content={description} />
+  <title>{title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/global.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="logo">contenido<span>.</span></a>
+      <nav class="nav">
+        <a href="/">inicio</a>
+        <a href="/admin">admin</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <slot />
+  </main>
+</body>
+</html>

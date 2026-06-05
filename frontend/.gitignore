@@ -1,0 +1,6 @@
+.netlify
+.env
+.env.local
+node_modules/
+dist/
+.astro/

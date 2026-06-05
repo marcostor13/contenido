@@ -1,0 +1,16 @@
+{
+  "name": "contenido-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.8.0",
+    "marked": "^13.0.0",
+    "netlify-cli": "^26.1.0",
+    "mongodb": "^6.8.0"
+  }
+}

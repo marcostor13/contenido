@@ -1,0 +1,71 @@
+---
+import Base from '../../layouts/Base.astro'
+---
+<Base title="Artículo">
+  <a href="/" class="back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    volver
+  </a>
+  <div id="loading" class="spinner"></div>
+  <div id="article" style="display:none">
+    <div id="article-meta" class="article-meta"></div>
+    <h1 id="article-title" class="article-title"></h1>
+    <p id="article-excerpt" class="article-excerpt"></p>
+    <hr class="divider" />
+    <div id="article-body" class="prose"></div>
+    <div id="article-tags" style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.5rem"></div>
+  </div>
+  <div id="error" class="empty" style="display:none">Artículo no encontrado.</div>
+</Base>
+
+<script>
+  import { marked } from 'marked'
+
+  const slug = window.location.pathname.replace(/^\/article\//, '').replace(/\/$/, '')
+
+  async function load() {
+    if (!slug) { show('error'); return }
+
+    const res = await fetch(`/api/content?slug=${encodeURIComponent(slug)}`)
+    if (!res.ok) { show('error'); return }
+    const item = await res.json()
+    render(item)
+  }
+
+  function show(id: string) {
+    document.getElementById('loading')!.style.display = 'none'
+    document.getElementById(id)!.style.display = 'block'
+  }
+
+  function render(item: any) {
+    document.title = item.title + ' · Contenido'
+
+    const meta = document.getElementById('article-meta')!
+    meta.innerHTML = `
+      <span class="tag">${item.category || 'General'}</span>
+      <span class="date">${new Date(item.createdAt).toLocaleDateString('es', { day:'numeric', month:'long', year:'numeric' })}</span>
+    `
+    document.getElementById('article-title')!.textContent = item.title
+
+    const excerptEl = document.getElementById('article-excerpt')!
+    if (item.excerpt) { excerptEl.textContent = item.excerpt }
+    else { excerptEl.style.display = 'none' }
+
+    document.getElementById('article-body')!.innerHTML = marked.parse(item.content) as string
+
+    const tagsEl = document.getElementById('article-tags')!
+    if (item.tags?.length) {
+      tagsEl.innerHTML = item.tags.map((t: string) =>
+        `<a href="/?q=${encodeURIComponent(t)}" style="color:var(--accent);font-size:.875rem">#${t}</a>`
+      ).join('')
+    } else {
+      tagsEl.style.display = 'none'
+    }
+
+    show('article')
+  }
+
+  load()
+</script>
