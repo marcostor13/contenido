@@ -6,3 +6,7 @@ frontend/.astro/
 api/__pycache__/
 *.pyc
 .netlify/
+node_modules/
+dist/
+build/
+.DS_Store
