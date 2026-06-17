@@ -16,17 +16,23 @@ const slugify = (s) =>
     .slice(0, 80)
 
 // Prompt de sistema: define el tono y el rol del modelo.
-const SYSTEM_PROMPT = `Sos un editor de contenido viral en español que escribe para un público general (no técnico).
-Tu trabajo es tomar una noticia o herramienta REAL y convertirla en un artículo interesantísimo,
-conectándola con la tecnología actual y la inteligencia artificial.
+const SYSTEM_PROMPT = `Sos un creador de contenido viral en español, estilo guion de reel, para un público general (NO técnico).
+Tu materia prima son noticias REALES, cotidianas, impactantes y que despiertan curiosidad: historias humanas,
+hechos insólitos, sorprendentes, de la vida real. NO noticias técnicas ni de tecnología.
+
+Tu trabajo: tomar esa noticia cotidiana y convertirla en un reel con viralidad y storytelling, que termine
+en una MORALEJA o enseñanza que conecte con la inteligencia artificial y con cómo usarla para ser más productivo.
+La noticia es el gancho emocional; la IA y la productividad son el aprendizaje final.
 
 Reglas de tono y estilo:
-- Amical y cercano, como si le contaras algo fascinante a un amigo. Nada de jerga técnica ni tecnicismos.
-- Ni muy formal ni acartonado, pero tampoco vulgar.
-- Storytelling: empezá con un gancho que enganche, contá una historia, generá curiosidad.
-- Todo debe basarse en información REAL del material entregado. NO inventes datos, cifras ni citas.
+- Amical y cercano, como si le contaras algo fascinante a un amigo. Cero jerga técnica, cero tecnicismos.
+- Que enganche a cualquiera: arrancá con un gancho fuerte que genere curiosidad y dé ganas de seguir.
+- Storytelling de principio a fin: contá la historia, generá tensión, y recién al final revelá la enseñanza.
+- La conexión con la IA/productividad debe sentirse natural y reveladora, no forzada ni publicitaria.
+- Cerrá SIEMPRE con una moraleja clara y accionable sobre cómo aprovechar la IA en el día a día.
+- Todo se basa en información REAL del material entregado. NO inventes datos, cifras ni citas.
 - Si el material es escaso, quedate en lo general y verificable; nunca inventes hechos falsos.
-- Markdown limpio: usá subtítulos con ## y, si suma, alguna cita con >.
+- Markdown limpio: subtítulos con ## y, si suma, alguna cita con >. Cerrá con un bloque "## La moraleja".
 - Largo: entre 500 y 900 palabras.
 
 Devolvé SIEMPRE un único objeto JSON válido con exactamente estas claves:
@@ -44,28 +50,28 @@ Devolvé SIEMPRE un único objeto JSON válido con exactamente estas claves:
 // Construye el prompt de usuario según haya material de fuente o un tema libre.
 function buildUserPrompt({ sourceTitle, sourceText, sourceUrl, topic }) {
   if (topic) {
-    return `El usuario quiere un artículo sobre este tema: "${topic}".
+    return `El usuario quiere un reel/artículo sobre este tema: "${topic}".
 
-Paso 1 — Analizá el tema y relacionalo con la tecnología actual y la inteligencia artificial.
-Paso 2 — Analizá qué lo haría viral y aplicá storytelling.
-Paso 3 — Escribí el artículo final siguiendo todas las reglas.
-
-Si el tema no menciona IA o tecnología, encontrá un ángulo genuino que lo conecte con ellas.
+Paso 1 — Tomalo como una historia cotidiana que engancha y analizá qué la hace curiosa o impactante.
+Paso 2 — Analizá qué la haría viral y aplicá storytelling de principio a fin.
+Paso 3 — Escribí el artículo final y cerrá con una moraleja que conecte la historia con cómo usar la
+         inteligencia artificial para ser más productivo. La conexión debe sentirse natural, no forzada.
 Recordá: contenido real y verificable, nada inventado.`
   }
 
-  return `Tomá esta noticia/herramienta REAL y trabajala.
+  return `Tomá esta noticia REAL y cotidiana (NO técnica) y convertila en un reel con moraleja.
 
-TÍTULO ORIGINAL: ${sourceTitle}
+TITULAR REAL: ${sourceTitle}
 URL: ${sourceUrl || '(sin URL)'}
-EXTRACTO DEL CONTENIDO REAL:
+RESUMEN / CONTENIDO REAL:
 """
-${sourceText || '(no se pudo extraer el cuerpo; basate en el título y en conocimiento general verificable, sin inventar datos)'}
+${sourceText || '(solo está el titular; basate en él y en conocimiento general verificable, sin inventar datos)'}
 """
 
-Paso 1 — Analizá este material y encontrá su relación con la tecnología actual y la inteligencia artificial.
-Paso 2 — Analizá viralidad y aplicá storytelling.
-Paso 3 — Escribí el artículo final siguiendo todas las reglas.
+Paso 1 — Identificá el gancho emocional y por qué esta historia despierta curiosidad en cualquier persona.
+Paso 2 — Aplicá viralidad y storytelling: contala como una historia que atrape.
+Paso 3 — Cerrá con una moraleja que conecte esta historia cotidiana con la inteligencia artificial y con
+         cómo aprovecharla para ser más productivo en el día a día.
 No inventes cifras ni citas que no estén en el material.`
 }
 
@@ -166,7 +172,9 @@ async function runAutogen({ force = false } = {}) {
     return { skipped: true, reason: 'sin noticias nuevas' }
   }
 
-  const text = await fetchArticleText(story.url)
+  // Texto del artículo (mejor esfuerzo); si no se puede, usar el resumen del feed.
+  const fetched = await fetchArticleText(story.url)
+  const text = fetched && fetched.length > 200 ? fetched : (story.summary || fetched || '')
 
   try {
     const article = await generateArticle({

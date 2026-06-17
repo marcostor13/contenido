@@ -1,20 +1,53 @@
-// Obtención de contenido REAL desde fuentes públicas (sin API key).
-// Usamos la API de Hacker News (Algolia) que expone historias reales y
-// trending: ideal para temas impactantes de tecnología y herramientas de
-// productividad. Devolvemos un tema todavía no usado en la base.
+// Obtención de noticias REALES, generales e impactantes (sin API key).
+// Usamos los feeds RSS de Google Noticias en español: traen lo más relevante y
+// curioso del día (no técnico), pensado para que cualquier persona se enganche.
+// Luego el pipeline les encuentra una moraleja conectada con la IA y la productividad.
 
-const HN_FRONT = 'https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30'
-// Búsquedas orientadas a herramientas / productividad (Show HN y queries útiles).
-const HN_QUERIES = [
-  'https://hn.algolia.com/api/v1/search_by_date?tags=show_hn&hitsPerPage=30',
-  'https://hn.algolia.com/api/v1/search?query=productivity%20tool&tags=story&hitsPerPage=30',
-  'https://hn.algolia.com/api/v1/search?query=AI%20tool&tags=story&hitsPerPage=30',
+// Feed principal: portada / lo más importante del día.
+const GN_TOP = 'https://news.google.com/rss?hl=es-419&gl=US&ceid=US:es-419'
+
+// Búsquedas rotadas para sumar noticias curiosas / impactantes / humanas.
+const GN_QUERIES = [
+  'https://news.google.com/rss/search?q=insólito%20OR%20increíble%20OR%20histórico&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=récord%20OR%20sorprendente%20OR%20viral&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=historia%20OR%20descubrimiento%20OR%20curiosidad&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=ciencia%20OR%20naturaleza%20OR%20espacio&hl=es-419&gl=US&ceid=US:es-419',
 ]
 
-async function fetchJson(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'contenido-autogen/1.0' } })
-  if (!res.ok) throw new Error(`Fuente no disponible (${res.status}): ${url}`)
-  return res.json()
+const decode = (s = '') =>
+  s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ').trim()
+
+const pick = (block, tag) => {
+  const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'))
+  return m ? decode(m[1]) : ''
+}
+
+// Parsea un feed RSS y devuelve los items con título, link, descripción y fuente.
+async function fetchFeed(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; contenido-autogen/1.0)' } })
+  if (!res.ok) throw new Error(`Fuente no disponible (${res.status})`)
+  const xml = await res.text()
+  const items = []
+  const re = /<item>([\s\S]*?)<\/item>/g
+  let m
+  while ((m = re.exec(xml)) !== null) {
+    const b = m[1]
+    const title = pick(b, 'title')
+    const link = pick(b, 'link')
+    if (!title || !link) continue
+    items.push({
+      title,
+      link,
+      description: pick(b, 'description'),
+      source: pick(b, 'source'),
+      guid: pick(b, 'guid') || link,
+    })
+  }
+  return items
 }
 
 // Extrae texto plano legible de una página web (mejor esfuerzo, sin deps).
@@ -42,41 +75,39 @@ async function fetchArticleText(url, maxChars = 6000) {
   }
 }
 
-// Devuelve un candidato { title, url, points, objectID, discussion } real,
-// priorizando los de mayor relevancia y que no se hayan usado antes.
-// `usedKeys` es un Set con identificadores ya procesados.
+// Devuelve una noticia { key, title, url, summary, source } real y todavía no usada.
+// `usedKeys` es un Set con identificadores ya procesados, para no repetir.
 async function pickFreshStory(usedKeys = new Set()) {
   const pool = []
 
-  // Front page (impactante / interesante).
-  try {
-    const front = await fetchJson(HN_FRONT)
-    pool.push(...(front.hits || []))
-  } catch {}
+  // Portada del día (lo más relevante / impactante).
+  try { pool.push(...(await fetchFeed(GN_TOP))) } catch {}
 
-  // Una query rotada de productividad / herramientas.
-  const q = HN_QUERIES[Math.floor(Math.random() * HN_QUERIES.length)]
-  try {
-    const extra = await fetchJson(q)
-    pool.push(...(extra.hits || []))
-  } catch {}
+  // Una búsqueda rotada de noticias curiosas / humanas.
+  const q = GN_QUERIES[Math.floor(Math.random() * GN_QUERIES.length)]
+  try { pool.push(...(await fetchFeed(q))) } catch {}
 
   const candidates = pool
-    .filter(h => h && h.title && (h.url || h.story_text))
-    .filter(h => !usedKeys.has(`hn:${h.objectID}`) && !usedKeys.has(h.url))
-    .sort((a, b) => (b.points || 0) - (a.points || 0))
+    .filter(h => h && h.title)
+    .filter(h => !usedKeys.has(`gn:${h.guid}`) && !usedKeys.has(h.link))
+
+  // Mezclar para variar el tema en cada corrida.
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[candidates[i], candidates[j]] = [candidates[j], candidates[i]]
+  }
 
   const chosen = candidates[0]
   if (!chosen) return null
 
   return {
-    key: `hn:${chosen.objectID}`,
+    key: `gn:${chosen.guid}`,
     title: chosen.title,
-    url: chosen.url || '',
-    points: chosen.points || 0,
-    discussion: `https://news.ycombinator.com/item?id=${chosen.objectID}`,
-    objectID: chosen.objectID,
+    url: chosen.link,
+    summary: chosen.description,
+    source: chosen.source,
+    discussion: '',
   }
 }
 
-module.exports = { pickFreshStory, fetchArticleText, fetchJson }
+module.exports = { pickFreshStory, fetchArticleText, fetchFeed }
