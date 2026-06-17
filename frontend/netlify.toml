@@ -6,6 +6,11 @@
   directory = "api"
   node_bundler = "esbuild"
 
+# Cron base: corre cada hora. El on/off y la frecuencia real (cada cuántas horas
+# genera) se controlan desde el administrador y se guardan en la base de datos.
+[functions."autogen"]
+  schedule = "@hourly"
+
 [dev]
   command = "npm run dev"
   targetPort = 4321

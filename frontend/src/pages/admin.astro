@@ -21,6 +21,7 @@ import Base from '../layouts/Base.astro'
     <div class="tabs">
       <button class="tab active" data-tab="list">Artículos</button>
       <button class="tab" data-tab="new">Nuevo</button>
+      <button class="tab" data-tab="gen">Generar con IA</button>
     </div>
 
     <!-- Lista -->
@@ -63,6 +64,64 @@ import Base from '../layouts/Base.astro'
       </div>
       <button id="save-btn" class="btn">Guardar artículo</button>
     </div>
+
+    <!-- Generar con IA -->
+    <div id="tab-gen" style="display:none">
+
+      <!-- Generación manual por tema -->
+      <h3 style="margin:0 0 .25rem">Generar desde un tema</h3>
+      <div class="hint">Escribí un tema y la IA lo analiza, lo conecta con la tecnología actual e IA, le aplica storytelling y guarda el artículo automáticamente.</div>
+      <div class="field">
+        <label class="label">Tema</label>
+        <input id="g-topic" type="text" class="input" placeholder="Ej: el nuevo modelo de robots de Boston Dynamics" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="label">Categoría (opcional)</label>
+          <input id="g-category" type="text" class="input" placeholder="Tecnología" />
+        </div>
+      </div>
+      <button id="gen-topic-btn" class="btn">Generar artículo</button>
+      <div id="gen-status" class="hint" style="margin-top:.75rem"></div>
+
+      <hr class="divider" style="margin:2rem 0" />
+
+      <!-- Disparo manual del flujo de noticias -->
+      <h3 style="margin:0 0 .25rem">Buscar noticia y generar ahora</h3>
+      <div class="hint">Ejecuta el flujo automático una vez: busca una noticia real e interesante, la relaciona con IA y publica.</div>
+      <button id="gen-cron-btn" class="btn" style="background:#1f6feb">Buscar y generar ahora</button>
+
+      <hr class="divider" style="margin:2rem 0" />
+
+      <!-- Configuración del cron -->
+      <h3 style="margin:0 0 .25rem">Automatización (cron)</h3>
+      <div class="hint">El sistema corre cada hora. Acá controlás si genera, cada cuántas horas y con qué motor.</div>
+
+      <div style="display:flex;align-items:center;gap:.5rem;margin:.75rem 0 1rem">
+        <input id="s-enabled" type="checkbox" style="accent-color:var(--accent);width:16px;height:16px" />
+        <label for="s-enabled" style="font-size:.9rem;color:var(--muted)">Generación automática activada</label>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="label">Frecuencia (cada cuántas horas)</label>
+          <input id="s-frequency" type="number" min="1" max="168" class="input" placeholder="1" />
+        </div>
+        <div class="field">
+          <label class="label">Motor de IA</label>
+          <select id="s-provider" class="input">
+            <option value="auto">Automático (reparte carga)</option>
+            <option value="openai">OpenAI</option>
+            <option value="deepseek">DeepSeek</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Categoría por defecto</label>
+        <input id="s-category" type="text" class="input" placeholder="Tecnología" />
+      </div>
+      <button id="save-settings-btn" class="btn">Guardar configuración</button>
+      <div id="settings-info" class="hint" style="margin-top:.75rem"></div>
+    </div>
   </div>
 </Base>
 
@@ -96,6 +155,8 @@ import Base from '../layouts/Base.astro'
       btn.classList.add('active')
       document.getElementById('tab-list')!.style.display = tab === 'list' ? 'block' : 'none'
       document.getElementById('tab-new')!.style.display = tab === 'new' ? 'block' : 'none'
+      document.getElementById('tab-gen')!.style.display = tab === 'gen' ? 'block' : 'none'
+      if (tab === 'gen') loadSettings()
     })
   })
 
@@ -184,6 +245,112 @@ import Base from '../layouts/Base.astro'
       alert('Error al guardar')
       btn.disabled = false
       btn.textContent = 'Guardar artículo'
+    }
+  })
+
+  // ——— Generar con IA ———
+  const genStatus = document.getElementById('gen-status')!
+
+  // Generar a partir de un tema escrito.
+  document.getElementById('gen-topic-btn')!.addEventListener('click', async () => {
+    const btn = document.getElementById('gen-topic-btn') as HTMLButtonElement
+    const topic = (document.getElementById('g-topic') as HTMLInputElement).value.trim()
+    const category = (document.getElementById('g-category') as HTMLInputElement).value.trim()
+    if (!topic) { alert('Escribí un tema'); return }
+    btn.disabled = true; btn.textContent = 'Generando...'
+    genStatus.textContent = 'Analizando tema, conectando con IA y redactando... (puede tardar unos segundos)'
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ topic, category: category || undefined }),
+      })
+      const data = await res.json()
+      if (res.ok && data.article) {
+        genStatus.innerHTML = `✅ Generado con <b>${data.article.generatedBy}</b>: <a href="/article/${data.article.slug}" style="color:var(--accent)">${data.article.title}</a>`
+        ;(document.getElementById('g-topic') as HTMLInputElement).value = ''
+        loadList()
+      } else {
+        genStatus.textContent = '❌ ' + (data.error || 'Error al generar')
+      }
+    } catch (e: any) {
+      genStatus.textContent = '❌ ' + e.message
+    }
+    btn.disabled = false; btn.textContent = 'Generar artículo'
+  })
+
+  // Disparar el flujo de noticias manualmente.
+  document.getElementById('gen-cron-btn')!.addEventListener('click', async () => {
+    const btn = document.getElementById('gen-cron-btn') as HTMLButtonElement
+    btn.disabled = true; btn.textContent = 'Buscando noticia...'
+    genStatus.textContent = 'Buscando una noticia real e interesante y generando el artículo...'
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST', headers: headers(), body: JSON.stringify({ runCron: true }),
+      })
+      const data = await res.json()
+      if (res.ok && data.article) {
+        genStatus.innerHTML = `✅ Generado con <b>${data.article.generatedBy}</b>: <a href="/article/${data.article.slug}" style="color:var(--accent)">${data.article.title}</a>`
+        loadList()
+      } else if (res.ok && data.skipped) {
+        genStatus.textContent = 'ℹ️ Omitido: ' + data.reason
+      } else {
+        genStatus.textContent = '❌ ' + (data.error || 'Error')
+      }
+    } catch (e: any) {
+      genStatus.textContent = '❌ ' + e.message
+    }
+    btn.disabled = false; btn.textContent = 'Buscar y generar ahora'
+  })
+
+  // ——— Configuración del cron ———
+  const settingsInfo = document.getElementById('settings-info')!
+  let settingsLoaded = false
+
+  async function loadSettings() {
+    if (settingsLoaded) return
+    try {
+      const res = await fetch('/api/settings', { headers: headers() })
+      if (!res.ok) { settingsInfo.textContent = 'No se pudo cargar la configuración'; return }
+      const { settings, providers } = await res.json()
+      ;(document.getElementById('s-enabled') as HTMLInputElement).checked = !!settings.enabled
+      ;(document.getElementById('s-frequency') as HTMLInputElement).value = String(settings.frequencyHours || 1)
+      ;(document.getElementById('s-provider') as HTMLSelectElement).value = settings.provider || 'auto'
+      ;(document.getElementById('s-category') as HTMLInputElement).value = settings.category || 'Tecnología'
+      renderSettingsInfo(settings, providers)
+      settingsLoaded = true
+    } catch (e: any) {
+      settingsInfo.textContent = 'Error: ' + e.message
+    }
+  }
+
+  function renderSettingsInfo(settings: any, providers: string[]) {
+    const last = settings.lastRunAt ? new Date(settings.lastRunAt).toLocaleString('es') : 'nunca'
+    const prov = providers?.length ? providers.join(', ') : 'ninguno (configurá OPENAI_API_KEY o DEEPSEEK_API_KEY)'
+    settingsInfo.innerHTML =
+      `Motores conectados: <b>${prov}</b><br>Última generación automática: ${last}` +
+      (settings.lastError ? `<br><span style="color:#f85149">Último error: ${settings.lastError}</span>` : '')
+  }
+
+  document.getElementById('save-settings-btn')!.addEventListener('click', async () => {
+    const btn = document.getElementById('save-settings-btn') as HTMLButtonElement
+    btn.disabled = true; btn.textContent = 'Guardando...'
+    const body = {
+      enabled: (document.getElementById('s-enabled') as HTMLInputElement).checked,
+      frequencyHours: Number((document.getElementById('s-frequency') as HTMLInputElement).value) || 1,
+      provider: (document.getElementById('s-provider') as HTMLSelectElement).value,
+      category: (document.getElementById('s-category') as HTMLInputElement).value.trim() || 'Tecnología',
+    }
+    try {
+      const res = await fetch('/api/settings', { method: 'POST', headers: headers(), body: JSON.stringify(body) })
+      const data = await res.json()
+      if (res.ok) {
+        btn.textContent = '¡Guardado!'; btn.classList.add('success')
+        setTimeout(() => { btn.textContent = 'Guardar configuración'; btn.classList.remove('success'); btn.disabled = false }, 1500)
+      } else {
+        alert(data.error || 'Error'); btn.disabled = false; btn.textContent = 'Guardar configuración'
+      }
+    } catch (e: any) {
+      alert(e.message); btn.disabled = false; btn.textContent = 'Guardar configuración'
     }
   })
 </script>
