@@ -7,12 +7,15 @@ tecnología actual y la inteligencia artificial.
 ## Cómo funciona
 
 0. **Aprender (antes de todo).** En cada corrida del cron, primero se ejecuta una fase de
-   aprendizaje: analiza los artículos previos (qué funcionó según su viralidad), **lee el historial de
-   aprendizajes guardado en la base** (para no perder contexto) e investiga/recopila herramientas y
-   técnicas de viralidad actuales. Con eso construye y evoluciona un **playbook** (guía accionable).
-   Cada ciclo se guarda de forma acumulativa (append-only) en la colección `content.learnings`, y el
-   playbook vigente queda en `settings.playbook` para inyectarse en la generación. La generación
-   manual reutiliza el último playbook guardado.
+   aprendizaje que parte de una **estrategia base permanente** (viralidad y monetización 2026:
+   regla de los 3 segundos, ganchos, CTAs, afiliados, productos digitales, suscripciones, UGC, apoyo
+   en IA — ver `api/lib/knowledge.js`). Sobre ese fundamento analiza los artículos previos (qué funcionó
+   según su viralidad), **lee el historial de aprendizajes guardado en la base** (para no perder contexto)
+   e investiga/recopila técnicas de viralidad actuales. Con eso construye y evoluciona un **playbook**
+   accionable. La estrategia base se siembra una sola vez en `content.learnings` (cycle 0, seed); cada
+   ciclo de aprendizaje se guarda de forma acumulativa (append-only) en la misma colección, y el playbook
+   vigente queda en `settings.playbook` para inyectarse en la generación. La generación manual reutiliza
+   el último playbook (o la estrategia base si aún no hubo ciclos).
 1. **Buscar (paso 1).** Se toma una noticia/herramienta REAL y trending desde la API
    pública de Hacker News (front page + búsquedas de productividad / herramientas / IA).
    Se evitan repeticiones usando las fuentes ya procesadas.
