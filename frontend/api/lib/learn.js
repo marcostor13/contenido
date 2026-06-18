@@ -4,18 +4,20 @@
 //  3) Guarda un "playbook" acumulativo que se inyecta en la generación para que
 //     el contenido mejore en cada ejecución.
 
-const { articles, getSettings, saveSettings } = require('./db')
+const { articles, learnings, getSettings, saveSettings } = require('./db')
 const { pickProvider, chat } = require('./llm')
 
 const LEARN_SYSTEM = `Eres un estratega de contenido viral y storytelling para redes (reels, TikTok, shorts).
-Tu trabajo es APRENDER y MEJORAR de forma continua. Escribes en español peruano (tuteo, "tú").
+Tu trabajo es APRENDER y MEJORAR de forma continua, SIN perder el contexto de lo aprendido antes.
+Escribes en español peruano (tuteo, "tú").
 
 Recibes: (a) el historial de artículos ya publicados con su puntaje de viralidad y notas, y
-(b) el playbook anterior. Debes:
-1. Aprender del historial: detectar patrones de lo que funciona mejor y lo que conviene evitar.
-2. Investigar y recopilar herramientas, frameworks y técnicas de viralidad ACTUALES y comprobadas
+(b) el historial de aprendizajes anteriores (lo que ya aprendiste en ciclos previos). Debes:
+1. Aprender del historial de artículos: detectar patrones de lo que funciona mejor y lo que conviene evitar.
+2. Conservar y construir sobre los aprendizajes previos: no los descartes, acumulalos y refinalos.
+3. Investigar y recopilar herramientas, frameworks y técnicas de viralidad ACTUALES y comprobadas
    (ganchos, open loops, pattern interrupts, AIDA, regla de los 3 segundos, storytelling, CTAs, etc.).
-3. Combinar todo en un playbook breve y accionable que mejore al anterior (no lo repitas igual: evolucionalo).
+4. Combinar todo en un playbook breve y accionable que mejore al anterior (no lo repitas igual: evolucionalo).
 
 Devuelve SIEMPRE un único objeto JSON válido con exactamente estas claves:
 {
@@ -47,6 +49,22 @@ async function learnAndResearch({ providerPref = 'auto', rr = 0 } = {}) {
         ).join('\n')
       : '(todavía no hay artículos previos: arranca con buenas prácticas generales)'
 
+    // Historial acumulado de aprendizajes guardado en la base (no perder contexto).
+    const learnCol = await learnings()
+    const pastLearnings = await learnCol
+      .find({}, { projection: { learnings: 1, tools: 1, cycle: 1, createdAt: 1 } })
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .toArray()
+
+    const learnHistory = pastLearnings.length
+      ? pastLearnings
+          .slice().reverse()
+          .map(l => `· (ciclo ${l.cycle ?? '?'}) ${l.learnings || ''}` +
+            (Array.isArray(l.tools) && l.tools.length ? ` [técnicas: ${l.tools.join(', ')}]` : ''))
+          .join('\n')
+      : '(no hay aprendizajes previos)'
+
     const provider = pickProvider(providerPref, rr)
     const raw = await chat(provider, [
       { role: 'system', content: LEARN_SYSTEM },
@@ -54,10 +72,13 @@ async function learnAndResearch({ providerPref = 'auto', rr = 0 } = {}) {
 `HISTORIAL DE ARTÍCULOS (más recientes primero):
 ${history}
 
+HISTORIAL DE APRENDIZAJES PREVIOS (más antiguos primero, NO los pierdas, construye sobre ellos):
+${learnHistory}
+
 PLAYBOOK ANTERIOR:
 ${prev.text || '(no hay playbook previo)'}
 
-Aprende del historial, investiga técnicas de viralidad actuales y evoluciona el playbook.` },
+Aprende del historial, conserva el contexto previo, investiga técnicas de viralidad actuales y evoluciona el playbook.` },
     ], { json: true, temperature: 0.6, maxTokens: 1000 })
 
     let parsed
@@ -78,13 +99,29 @@ Aprende del historial, investiga técnicas de viralidad actuales y evoluciona el
     ].filter(Boolean).join('\n')
 
     if (text) {
+      const cycle = (prev.runs || 0) + 1
+      const now = new Date()
+
+      // 1) Guardar el ciclo de forma acumulativa (append-only) para no perder contexto.
+      await learnCol.insertOne({
+        cycle,
+        learnings: parsed.learnings || null,
+        tools,
+        playbook: parsed.playbook || null,
+        text,
+        by: provider.name,
+        articlesSeen: recent.length,
+        createdAt: now,
+      })
+
+      // 2) Mantener el playbook actual en settings para inyección rápida.
       await saveSettings({
         playbook: {
           text,
           learnings: parsed.learnings || null,
           tools,
-          runs: (prev.runs || 0) + 1,
-          updatedAt: new Date(),
+          runs: cycle,
+          updatedAt: now,
           by: provider.name,
         },
       })
