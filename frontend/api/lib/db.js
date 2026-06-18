@@ -23,6 +23,12 @@ async function settings() {
   return (await db()).collection('settings')
 }
 
+// Colección de aprendizaje: historial acumulativo (append-only) de lo aprendido
+// en cada ciclo, para no perder contexto entre ejecuciones.
+async function learnings() {
+  return (await db()).collection('learnings')
+}
+
 const DEFAULT_SETTINGS = {
   _id: 'autogen',
   enabled: false, // el cron solo genera si está activado
@@ -50,4 +56,4 @@ async function saveSettings(patch) {
   return getSettings()
 }
 
-module.exports = { db, articles, settings, getSettings, saveSettings, DEFAULT_SETTINGS }
+module.exports = { db, articles, settings, learnings, getSettings, saveSettings, DEFAULT_SETTINGS }
