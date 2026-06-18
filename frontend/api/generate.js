@@ -3,6 +3,7 @@
 // POST { runCron: true } -> dispara el flujo del cron manualmente (paso 1 + 2 + 3).
 const { generateArticle, runAutogen } = require('./lib/generator')
 const { getSettings, saveSettings } = require('./lib/db')
+const { currentPlaybook } = require('./lib/learn')
 
 const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
 const ok = (data, status = 200) => ({ statusCode: status, headers, body: JSON.stringify(data) })
@@ -35,6 +36,7 @@ exports.handler = async (event) => {
       providerPref: s.provider,
       rr: s._rr || 0,
       category: body.category || s.category,
+      playbook: await currentPlaybook(),
     })
     await saveSettings({ _rr: ((s._rr || 0) + 1) % 1000 })
     return ok({ ok: true, article })

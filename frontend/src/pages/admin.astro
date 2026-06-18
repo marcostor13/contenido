@@ -326,8 +326,10 @@ import Base from '../layouts/Base.astro'
   function renderSettingsInfo(settings: any, providers: string[]) {
     const last = settings.lastRunAt ? new Date(settings.lastRunAt).toLocaleString('es') : 'nunca'
     const prov = providers?.length ? providers.join(', ') : 'ninguno (configurá OPENAI_API_KEY o DEEPSEEK_API_KEY)'
+    const pb = settings.playbook
     settingsInfo.innerHTML =
       `Motores conectados: <b>${prov}</b><br>Última generación automática: ${last}` +
+      (pb ? `<br>🧠 Aprendizaje: ${pb.runs || 0} ciclos · actualizado ${pb.updatedAt ? new Date(pb.updatedAt).toLocaleString('es') : '-'}` : '') +
       (settings.lastError ? `<br><span style="color:#f85149">Último error: ${settings.lastError}</span>` : '')
   }
 
