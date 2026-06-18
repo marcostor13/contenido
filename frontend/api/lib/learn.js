@@ -6,18 +6,21 @@
 
 const { articles, learnings, getSettings, saveSettings } = require('./db')
 const { pickProvider, chat } = require('./llm')
+const { BASE_STRATEGY } = require('./knowledge')
 
 const LEARN_SYSTEM = `Eres un estratega de contenido viral y storytelling para redes (reels, TikTok, shorts).
 Tu trabajo es APRENDER y MEJORAR de forma continua, SIN perder el contexto de lo aprendido antes.
 Escribes en español peruano (tuteo, "tú").
 
-Recibes: (a) el historial de artículos ya publicados con su puntaje de viralidad y notas, y
-(b) el historial de aprendizajes anteriores (lo que ya aprendiste en ciclos previos). Debes:
-1. Aprender del historial de artículos: detectar patrones de lo que funciona mejor y lo que conviene evitar.
-2. Conservar y construir sobre los aprendizajes previos: no los descartes, acumulalos y refinalos.
-3. Investigar y recopilar herramientas, frameworks y técnicas de viralidad ACTUALES y comprobadas
+Recibes: (a) una ESTRATEGIA BASE permanente que siempre debes respetar y aplicar, (b) el historial de
+artículos ya publicados con su puntaje de viralidad y notas, y (c) el historial de aprendizajes anteriores
+(lo que ya aprendiste en ciclos previos). Debes:
+1. Respetar SIEMPRE la estrategia base (viralidad, retención, conexión con IA y monetización) como fundamento.
+2. Aprender del historial de artículos: detectar patrones de lo que funciona mejor y lo que conviene evitar.
+3. Conservar y construir sobre los aprendizajes previos: no los descartes, acumulalos y refinalos.
+4. Investigar y recopilar herramientas, frameworks y técnicas de viralidad ACTUALES y comprobadas
    (ganchos, open loops, pattern interrupts, AIDA, regla de los 3 segundos, storytelling, CTAs, etc.).
-4. Combinar todo en un playbook breve y accionable que mejore al anterior (no lo repitas igual: evolucionalo).
+5. Combinar todo en un playbook breve y accionable que mejore al anterior (no lo repitas igual: evolucionalo).
 
 Devuelve SIEMPRE un único objeto JSON válido con exactamente estas claves:
 {
@@ -51,8 +54,21 @@ async function learnAndResearch({ providerPref = 'auto', rr = 0 } = {}) {
 
     // Historial acumulado de aprendizajes guardado en la base (no perder contexto).
     const learnCol = await learnings()
+
+    // Sembrar la estrategia base en la colección una sola vez (cycle 0, seed).
+    if (!(await learnCol.findOne({ seed: true }))) {
+      await learnCol.insertOne({
+        seed: true,
+        cycle: 0,
+        learnings: 'Estrategia base 2026 de viralidad y monetización (fundamento permanente).',
+        tools: ['regla de los 3 segundos', 'ganchos', 'open loops', 'CTAs', 'afiliados orgánicos', 'productos digitales', 'suscripciones', 'UGC'],
+        text: BASE_STRATEGY,
+        createdAt: new Date(),
+      })
+    }
+
     const pastLearnings = await learnCol
-      .find({}, { projection: { learnings: 1, tools: 1, cycle: 1, createdAt: 1 } })
+      .find({ seed: { $ne: true } }, { projection: { learnings: 1, tools: 1, cycle: 1, createdAt: 1 } })
       .sort({ createdAt: -1 })
       .limit(8)
       .toArray()
@@ -69,7 +85,10 @@ async function learnAndResearch({ providerPref = 'auto', rr = 0 } = {}) {
     const raw = await chat(provider, [
       { role: 'system', content: LEARN_SYSTEM },
       { role: 'user', content:
-`HISTORIAL DE ARTÍCULOS (más recientes primero):
+`ESTRATEGIA BASE (fundamento permanente, respétala siempre):
+${BASE_STRATEGY}
+
+HISTORIAL DE ARTÍCULOS (más recientes primero):
 ${history}
 
 HISTORIAL DE APRENDIZAJES PREVIOS (más antiguos primero, NO los pierdas, construye sobre ellos):
@@ -127,18 +146,19 @@ Aprende del historial, conserva el contexto previo, investiga técnicas de viral
       })
       return text
     }
-    return prev.text || ''
+    return prev.text || BASE_STRATEGY
   } catch (e) {
     // No bloquear la generación si el aprendizaje falla; usar el playbook previo.
     await saveSettings({ lastLearnError: e.message })
-    return prev.text || ''
+    return prev.text || BASE_STRATEGY
   }
 }
 
 // Devuelve el playbook guardado (para generación manual sin re-aprender).
+// Si aún no hay playbook aprendido, usa la estrategia base como fundamento.
 async function currentPlaybook() {
   const s = await getSettings()
-  return s.playbook?.text || ''
+  return s.playbook?.text || BASE_STRATEGY
 }
 
 module.exports = { learnAndResearch, currentPlaybook }
