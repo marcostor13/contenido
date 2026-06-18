@@ -7,6 +7,7 @@
 const { articles, getSettings, saveSettings } = require('./db')
 const { pickProvider, chat } = require('./llm')
 const { pickFreshStory, fetchArticleText } = require('./sources')
+const { learnAndResearch } = require('./learn')
 
 const slugify = (s) =>
   s.toLowerCase()
@@ -93,7 +94,7 @@ function parseArticle(raw) {
 // Ejecuta los pasos 2 y 3 sobre un material dado y guarda el artículo.
 //  source = { title, text, url } cuando viene del cron.
 //  topic  = string cuando lo dispara el admin manualmente.
-async function generateArticle({ source = null, topic = null, providerPref = 'auto', rr = 0, category = null, sourceKey = null }) {
+async function generateArticle({ source = null, topic = null, providerPref = 'auto', rr = 0, category = null, sourceKey = null, playbook = '' }) {
   const provider = pickProvider(providerPref, rr)
 
   const userPrompt = buildUserPrompt({
@@ -103,8 +104,13 @@ async function generateArticle({ source = null, topic = null, providerPref = 'au
     topic,
   })
 
+  // Inyectar el playbook aprendido (técnicas de viralidad y aprendizajes) si existe.
+  const systemPrompt = playbook
+    ? `${SYSTEM_PROMPT}\n\nGUÍA APRENDIDA (aplícala para maximizar la viralidad de este artículo):\n${playbook}`
+    : SYSTEM_PROMPT
+
   const raw = await chat(provider, [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ], { json: true, temperature: 0.85 })
 
@@ -159,6 +165,10 @@ async function runAutogen({ force = false } = {}) {
     }
   }
 
+  // ANTES DE TODO: fase de aprendizaje. Analiza lo previo e investiga técnicas
+  // de viralidad para mejorar el contenido de esta corrida.
+  const playbook = await learnAndResearch({ providerPref: s.provider, rr: s._rr || 0 })
+
   const col = await articles()
   // Claves de fuentes ya usadas, para no repetir noticias.
   const used = await col
@@ -187,6 +197,7 @@ async function runAutogen({ force = false } = {}) {
       rr: s._rr || 0,
       category: s.category,
       sourceKey: story.key,
+      playbook,
     })
     await saveSettings({ lastRunAt: new Date(), lastError: null, _rr: ((s._rr || 0) + 1) % 1000 })
     return { ok: true, article }
