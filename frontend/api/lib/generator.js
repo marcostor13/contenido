@@ -134,11 +134,12 @@ async function runAutogen({ force = false } = {}) {
     return { skipped: true, reason: 'desactivado' }
   }
 
-  // Respetar la frecuencia configurada: solo generar si pasó el intervalo.
+  // Respetar la frecuencia configurada (en minutos): solo generar si pasó el intervalo.
   if (!force && s.lastRunAt) {
-    const elapsedH = (Date.now() - new Date(s.lastRunAt).getTime()) / 36e5
-    if (elapsedH < (s.frequencyHours || 1) - 0.05) {
-      return { skipped: true, reason: `frecuencia: faltan ${((s.frequencyHours || 1) - elapsedH).toFixed(1)}h` }
+    const elapsedMin = (Date.now() - new Date(s.lastRunAt).getTime()) / 6e4
+    const freqMin = s.frequencyMinutes || 60
+    if (elapsedMin < freqMin - 0.25) {
+      return { skipped: true, reason: `frecuencia: faltan ${(freqMin - elapsedMin).toFixed(1)} min` }
     }
   }
 

@@ -1,6 +1,6 @@
 // Endpoint de configuración del módulo de auto-generación.
 // GET  -> devuelve la configuración actual y los proveedores disponibles (admin).
-// POST -> actualiza enabled / frequencyHours / provider / category (admin).
+// POST -> actualiza enabled / frequencyMinutes / provider / category (admin).
 const { getSettings, saveSettings } = require('./lib/db')
 const { availableProviders } = require('./lib/llm')
 
@@ -27,9 +27,11 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body ?? '{}')
     const patch = {}
     if (typeof body.enabled === 'boolean') patch.enabled = body.enabled
-    if (body.frequencyHours != null) {
-      const h = Math.max(1, Math.min(168, Number(body.frequencyHours) || 1))
-      patch.frequencyHours = h
+    // Frecuencia en minutos (1 min a 7 días). Se acepta frequencyHours legado por compatibilidad.
+    if (body.frequencyMinutes != null) {
+      patch.frequencyMinutes = Math.max(1, Math.min(10080, Math.round(Number(body.frequencyMinutes)) || 60))
+    } else if (body.frequencyHours != null) {
+      patch.frequencyMinutes = Math.max(1, Math.min(10080, Math.round((Number(body.frequencyHours) || 1) * 60)))
     }
     if (body.provider && ['auto', 'openai', 'deepseek'].includes(body.provider)) patch.provider = body.provider
     if (typeof body.category === 'string' && body.category.trim()) patch.category = body.category.trim()

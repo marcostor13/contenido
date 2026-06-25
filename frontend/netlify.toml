@@ -6,10 +6,12 @@
   directory = "api"
   node_bundler = "esbuild"
 
-# Cron base: corre cada hora. El on/off y la frecuencia real (cada cuántas horas
+# Cron base: corre cada minuto. El on/off y la frecuencia real (cada cuántos minutos
 # genera) se controlan desde el administrador y se guardan en la base de datos.
+# La función solo genera si está activada y si pasó el intervalo configurado; el resto
+# de corridas salen de inmediato. Este cron base define la resolución mínima (1 minuto).
 [functions."autogen"]
-  schedule = "@hourly"
+  schedule = "* * * * *"
 
 [dev]
   command = "npm run dev"

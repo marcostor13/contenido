@@ -45,10 +45,14 @@ las categorías nuevas aparecen automáticamente como filtros en la página prin
 
 ## Cron configurable
 
-- La Scheduled Function de Netlify `autogen` corre **cada hora** (`netlify.toml`).
-- El on/off y la **frecuencia real** (cada cuántas horas genera) se controlan desde el
+- La Scheduled Function de Netlify `autogen` corre **cada minuto** (`netlify.toml`). Es la
+  resolución mínima: el cron base define cada cuánto se *revisa* si toca generar.
+- El on/off y la **frecuencia real** (cada cuántos **minutos** genera) se controlan desde el
   administrador → pestaña **Generar con IA** → *Automatización (cron)*. La función solo
-  genera si está activada y si pasó el intervalo configurado (1 a 168 horas).
+  genera si está activada y si pasó el intervalo configurado (1 minuto a 10080 = 7 días).
+  Las corridas en las que aún no toca generar salen de inmediato (sin costo de IA).
+- La frecuencia se guarda como `frequencyMinutes`. Los valores antiguos en `frequencyHours`
+  se migran automáticamente a minutos al leer la configuración.
 
 ## Generación manual (administrador)
 

@@ -32,7 +32,7 @@ async function learnings() {
 const DEFAULT_SETTINGS = {
   _id: 'autogen',
   enabled: false, // el cron solo genera si está activado
-  frequencyHours: 1, // cada cuántas horas generar
+  frequencyMinutes: 60, // cada cuántos minutos generar (mínimo limitado por el cron base)
   lastRunAt: null, // última generación automática
   lastError: null, // último error registrado
   category: 'Tecnología', // categoría por defecto para lo autogenerado
@@ -43,7 +43,12 @@ const DEFAULT_SETTINGS = {
 async function getSettings() {
   const col = await settings()
   const doc = await col.findOne({ _id: 'autogen' })
-  return { ...DEFAULT_SETTINGS, ...(doc || {}) }
+  const merged = { ...DEFAULT_SETTINGS, ...(doc || {}) }
+  // Migración: docs antiguos guardaban frequencyHours; derivar minutos si hace falta.
+  if (doc && doc.frequencyMinutes == null && doc.frequencyHours != null) {
+    merged.frequencyMinutes = Math.max(1, Math.round(Number(doc.frequencyHours) * 60) || 60)
+  }
+  return merged
 }
 
 async function saveSettings(patch) {

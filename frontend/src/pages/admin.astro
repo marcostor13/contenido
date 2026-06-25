@@ -103,7 +103,7 @@ import Base from '../layouts/Base.astro'
 
       <!-- Configuración del cron -->
       <h3 style="margin:0 0 .25rem">Automatización (cron)</h3>
-      <div class="hint">El sistema corre cada hora. Acá controlás si genera, cada cuántas horas y con qué motor.</div>
+      <div class="hint">El sistema corre cada minuto y genera solo cuando pasó el intervalo que definas (en minutos). Acá controlás si genera, cada cuántos minutos y con qué motor.</div>
 
       <div style="display:flex;align-items:center;gap:.5rem;margin:.75rem 0 1rem">
         <input id="s-enabled" type="checkbox" style="accent-color:var(--accent);width:16px;height:16px" />
@@ -111,8 +111,8 @@ import Base from '../layouts/Base.astro'
       </div>
       <div class="row">
         <div class="field">
-          <label class="label">Frecuencia (cada cuántas horas)</label>
-          <input id="s-frequency" type="number" min="1" max="168" class="input" placeholder="1" />
+          <label class="label">Frecuencia (cada cuántos minutos)</label>
+          <input id="s-frequency" type="number" min="1" max="10080" class="input" placeholder="60" />
         </div>
         <div class="field">
           <label class="label">Motor de IA</label>
@@ -328,7 +328,7 @@ import Base from '../layouts/Base.astro'
       if (!res.ok) { settingsInfo.textContent = 'No se pudo cargar la configuración'; return }
       const { settings, providers } = await res.json()
       ;(document.getElementById('s-enabled') as HTMLInputElement).checked = !!settings.enabled
-      ;(document.getElementById('s-frequency') as HTMLInputElement).value = String(settings.frequencyHours || 1)
+      ;(document.getElementById('s-frequency') as HTMLInputElement).value = String(settings.frequencyMinutes || 60)
       ;(document.getElementById('s-provider') as HTMLSelectElement).value = settings.provider || 'auto'
       ;(document.getElementById('s-category') as HTMLInputElement).value = settings.category || 'Tecnología'
       renderSettingsInfo(settings, providers)
@@ -342,8 +342,10 @@ import Base from '../layouts/Base.astro'
     const last = settings.lastRunAt ? new Date(settings.lastRunAt).toLocaleString('es') : 'nunca'
     const prov = providers?.length ? providers.join(', ') : 'ninguno (configurá OPENAI_API_KEY o DEEPSEEK_API_KEY)'
     const pb = settings.playbook
+    const freq = settings.frequencyMinutes || 60
+    const freqTxt = freq % 60 === 0 ? `${freq / 60} h` : `${freq} min`
     settingsInfo.innerHTML =
-      `Motores conectados: <b>${prov}</b><br>Última generación automática: ${last}` +
+      `Motores conectados: <b>${prov}</b><br>Frecuencia: cada <b>${freqTxt}</b><br>Última generación automática: ${last}` +
       (pb ? `<br>🧠 Aprendizaje: ${pb.runs || 0} ciclos · actualizado ${pb.updatedAt ? new Date(pb.updatedAt).toLocaleString('es') : '-'}` : '') +
       (settings.lastError ? `<br><span style="color:#f85149">Último error: ${settings.lastError}</span>` : '')
   }
@@ -353,7 +355,7 @@ import Base from '../layouts/Base.astro'
     btn.disabled = true; btn.textContent = 'Guardando...'
     const body = {
       enabled: (document.getElementById('s-enabled') as HTMLInputElement).checked,
-      frequencyHours: Number((document.getElementById('s-frequency') as HTMLInputElement).value) || 1,
+      frequencyMinutes: Number((document.getElementById('s-frequency') as HTMLInputElement).value) || 60,
       provider: (document.getElementById('s-provider') as HTMLSelectElement).value,
       category: (document.getElementById('s-category') as HTMLInputElement).value.trim() || 'Tecnología',
     }
