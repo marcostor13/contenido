@@ -1,8 +1,26 @@
 # Módulo de auto-generación de contenido
 
-Genera artículos reales, interesantes y con tono amical de forma automática (cron)
-o manual (desde el administrador), conectando noticias y herramientas reales con la
-tecnología actual y la inteligencia artificial.
+Genera artículos reales, interesantes, animados y con un sarcasmo ligero de forma
+automática (cron) o manual (desde el administrador), conectando noticias y herramientas
+reales con la tecnología actual y la inteligencia artificial.
+
+## Secciones
+
+En cada corrida del cron se genera **una pieza por cada sección** (todas con la misma
+frecuencia configurada). Las secciones y su tono están definidas en `api/lib/sections.js`:
+
+1. **Historias con moraleja** (`historias`, categoría *Historias*). Noticias reales y
+   cotidianas convertidas en reels con storytelling y moraleja conectada con la IA y la
+   productividad. Tono más animado, con chispa y sarcasmo ligero. Parte de una noticia real.
+2. **Productividad & IA** (`productividad`, categoría *Productividad*). Herramientas
+   actuales, tips y trucos REALES para producir más con tecnología e inteligencia artificial.
+   Cierra con un bloque "Tu próximo paso" accionable. Parte de un ángulo rotativo.
+3. **Potencial Humano** (`potencial`, categoría *Potencial Humano*). Reflexiones y tips para
+   potenciar al ser humano (hábitos, foco, mentalidad, energía). Cierra con "Para llevarte
+   hoy". Parte de un ángulo rotativo.
+
+Las secciones por ángulo eligen un tema no usado recientemente para variar en cada corrida;
+las categorías nuevas aparecen automáticamente como filtros en la página principal.
 
 ## Cómo funciona
 
@@ -35,8 +53,10 @@ tecnología actual y la inteligencia artificial.
 ## Generación manual (administrador)
 
 Pestaña **Generar con IA**:
-- **Generar desde un tema:** escribís un tema en el input y el botón ejecuta los pasos 2 y 3.
-- **Buscar y generar ahora:** dispara el flujo completo (pasos 1, 2 y 3) una vez.
+- **Generar desde un tema:** elegís la sección, escribís un tema y el botón redacta una pieza
+  con el tono de esa sección (pasos 2 y 3).
+- **Generar todas las secciones ahora:** dispara el flujo completo una vez y publica una pieza
+  por cada sección (Historias, Productividad & IA y Potencial Humano).
 
 ## Balanceo de carga OpenAI / DeepSeek
 

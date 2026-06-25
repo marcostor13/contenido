@@ -33,9 +33,10 @@ exports.handler = async (event) => {
     const s = await getSettings()
     const article = await generateArticle({
       topic,
+      section: body.section || 'historias',
       providerPref: s.provider,
       rr: s._rr || 0,
-      category: body.category || s.category,
+      category: body.category || undefined,
       playbook: await currentPlaybook(),
     })
     await saveSettings({ _rr: ((s._rr || 0) + 1) % 1000 })

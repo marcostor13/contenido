@@ -70,26 +70,34 @@ import Base from '../layouts/Base.astro'
 
       <!-- Generación manual por tema -->
       <h3 style="margin:0 0 .25rem">Generar desde un tema</h3>
-      <div class="hint">Escribí un tema y la IA lo analiza, lo conecta con la tecnología actual e IA, le aplica storytelling y guarda el artículo automáticamente.</div>
-      <div class="field">
-        <label class="label">Tema</label>
-        <input id="g-topic" type="text" class="input" placeholder="Ej: el nuevo modelo de robots de Boston Dynamics" />
-      </div>
+      <div class="hint">Elegí una sección, escribí un tema y la IA lo redacta con el tono de esa sección y lo guarda automáticamente.</div>
       <div class="row">
         <div class="field">
-          <label class="label">Categoría (opcional)</label>
-          <input id="g-category" type="text" class="input" placeholder="Tecnología" />
+          <label class="label">Sección</label>
+          <select id="g-section" class="input">
+            <option value="historias">Historias con moraleja</option>
+            <option value="productividad">Productividad & IA</option>
+            <option value="potencial">Potencial Humano</option>
+          </select>
         </div>
+        <div class="field">
+          <label class="label">Categoría (opcional)</label>
+          <input id="g-category" type="text" class="input" placeholder="(usa la de la sección)" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Tema</label>
+        <input id="g-topic" type="text" class="input" placeholder="Ej: cómo usar la IA para ahorrar tiempo escribiendo correos" />
       </div>
       <button id="gen-topic-btn" class="btn">Generar artículo</button>
       <div id="gen-status" class="hint" style="margin-top:.75rem"></div>
 
       <hr class="divider" style="margin:2rem 0" />
 
-      <!-- Disparo manual del flujo de noticias -->
-      <h3 style="margin:0 0 .25rem">Buscar noticia y generar ahora</h3>
-      <div class="hint">Ejecuta el flujo automático una vez: busca una noticia real e interesante, la relaciona con IA y publica.</div>
-      <button id="gen-cron-btn" class="btn" style="background:#1f6feb">Buscar y generar ahora</button>
+      <!-- Disparo manual del flujo completo (todas las secciones) -->
+      <h3 style="margin:0 0 .25rem">Generar todas las secciones ahora</h3>
+      <div class="hint">Ejecuta el flujo automático una vez y publica una pieza por cada sección: Historias con moraleja, Productividad & IA y Potencial Humano.</div>
+      <button id="gen-cron-btn" class="btn" style="background:#1f6feb">Generar todas las secciones ahora</button>
 
       <hr class="divider" style="margin:2rem 0" />
 
@@ -256,13 +264,14 @@ import Base from '../layouts/Base.astro'
     const btn = document.getElementById('gen-topic-btn') as HTMLButtonElement
     const topic = (document.getElementById('g-topic') as HTMLInputElement).value.trim()
     const category = (document.getElementById('g-category') as HTMLInputElement).value.trim()
+    const section = (document.getElementById('g-section') as HTMLSelectElement).value
     if (!topic) { alert('Escribí un tema'); return }
     btn.disabled = true; btn.textContent = 'Generando...'
     genStatus.textContent = 'Analizando tema, conectando con IA y redactando... (puede tardar unos segundos)'
     try {
       const res = await fetch('/api/generate', {
         method: 'POST', headers: headers(),
-        body: JSON.stringify({ topic, category: category || undefined }),
+        body: JSON.stringify({ topic, section, category: category || undefined }),
       })
       const data = await res.json()
       if (res.ok && data.article) {
@@ -281,15 +290,21 @@ import Base from '../layouts/Base.astro'
   // Disparar el flujo de noticias manualmente.
   document.getElementById('gen-cron-btn')!.addEventListener('click', async () => {
     const btn = document.getElementById('gen-cron-btn') as HTMLButtonElement
-    btn.disabled = true; btn.textContent = 'Buscando noticia...'
-    genStatus.textContent = 'Buscando una noticia real e interesante y generando el artículo...'
+    btn.disabled = true; btn.textContent = 'Generando...'
+    genStatus.textContent = 'Generando una pieza por cada sección (puede tardar un poco)...'
     try {
       const res = await fetch('/api/generate', {
         method: 'POST', headers: headers(), body: JSON.stringify({ runCron: true }),
       })
       const data = await res.json()
-      if (res.ok && data.article) {
-        genStatus.innerHTML = `✅ Generado con <b>${data.article.generatedBy}</b>: <a href="/article/${data.article.slug}" style="color:var(--accent)">${data.article.title}</a>`
+      if (res.ok && Array.isArray(data.results)) {
+        const lines = data.results.map((r: any) => {
+          if (r.ok && r.article) return `✅ <b>${r.section}</b>: <a href="/article/${r.article.slug}" style="color:var(--accent)">${r.article.title}</a>`
+          if (r.skipped) return `ℹ️ <b>${r.section}</b>: omitido (${r.reason})`
+          if (r.error) return `❌ <b>${r.section}</b>: ${r.message}`
+          return ''
+        }).filter(Boolean)
+        genStatus.innerHTML = lines.join('<br>') || 'Sin resultados.'
         loadList()
       } else if (res.ok && data.skipped) {
         genStatus.textContent = 'ℹ️ Omitido: ' + data.reason
@@ -299,7 +314,7 @@ import Base from '../layouts/Base.astro'
     } catch (e: any) {
       genStatus.textContent = '❌ ' + e.message
     }
-    btn.disabled = false; btn.textContent = 'Buscar y generar ahora'
+    btn.disabled = false; btn.textContent = 'Generar todas las secciones ahora'
   })
 
   // ——— Configuración del cron ———
