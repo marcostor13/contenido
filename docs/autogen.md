@@ -49,10 +49,14 @@ las categorías nuevas aparecen automáticamente como filtros en la página prin
   resolución mínima: el cron base define cada cuánto se *revisa* si toca generar.
 - El on/off y la **frecuencia real** (cada cuántos **minutos** genera) se controlan desde el
   administrador → pestaña **Generar con IA** → *Automatización (cron)*. La función solo
-  genera si está activada y si pasó el intervalo configurado (1 minuto a 10080 = 7 días).
-  Las corridas en las que aún no toca generar salen de inmediato (sin costo de IA).
+  genera si está activada y si pasó el intervalo configurado (mínimo de seguridad **5 minutos**,
+  máximo 10080 = 7 días). Las corridas en las que aún no toca generar salen de inmediato (sin costo de IA).
 - La frecuencia se guarda como `frequencyMinutes`. Los valores antiguos en `frequencyHours`
   se migran automáticamente a minutos al leer la configuración.
+- **Rotación de secciones** (`rotateSections`): si está **desactivada** (default), cada corrida
+  genera una pieza por **cada** sección. Si está **activada**, genera **una sola sección por
+  corrida**, rotando entre ellas — útil para abaratar el costo de IA. Cada sección termina
+  apareciendo por igual con el tiempo; el puntero de rotación es `_sectionRr`.
 
 ## Generación manual (administrador)
 

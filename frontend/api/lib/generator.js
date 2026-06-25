@@ -158,10 +158,16 @@ async function runAutogen({ force = false } = {}) {
     for (const u of d.sources || []) usedKeys.add(u)
   }
 
-  // Generar una pieza por cada sección. Una sección que falle no tumba al resto.
+  // Secciones a generar en esta corrida:
+  //  - rotateSections = false (default): todas en la misma corrida (misma frecuencia).
+  //  - rotateSections = true: una sola sección por corrida, rotando, para abaratar costos.
+  const secIdx = (s._sectionRr || 0) % SECTIONS.length
+  const toRun = s.rotateSections ? [SECTIONS[secIdx]] : SECTIONS
+
+  // Generar las secciones elegidas. Una sección que falle no tumba al resto.
   const results = []
   let rr = s._rr || 0
-  for (const sec of SECTIONS) {
+  for (const sec of toRun) {
     try {
       const r = await generateForSection(sec, { providerPref: s.provider, rr, usedKeys, playbook })
       results.push(r)
@@ -174,15 +180,24 @@ async function runAutogen({ force = false } = {}) {
 
   const okCount = results.filter(r => r.ok).length
   const errors = results.filter(r => r.error)
+  // Avanzar el puntero de rotación una sección por corrida (aunque haya saltos/errores),
+  // así con el tiempo se cubren todas por igual.
+  const nextSectionRr = s.rotateSections ? (secIdx + 1) % SECTIONS.length : (s._sectionRr || 0)
 
   if (okCount > 0) {
     await saveSettings({
       lastRunAt: new Date(),
       lastError: errors.length ? `${errors.length} sección(es) con error: ${errors.map(e => e.section + ' (' + e.message + ')').join('; ')}` : null,
       _rr: rr,
+      _sectionRr: nextSectionRr,
     })
   } else {
-    await saveSettings({ lastError: 'Ninguna sección generó contenido en esta corrida.' })
+    // Aunque ninguna sección haya generado, avanzar la rotación para no quedarnos
+    // atascados en una sección sin material (p. ej. sin noticias nuevas).
+    await saveSettings({
+      lastError: 'Ninguna sección generó contenido en esta corrida.',
+      _sectionRr: nextSectionRr,
+    })
   }
 
   return { ok: okCount > 0, generated: okCount, results }

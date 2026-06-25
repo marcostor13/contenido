@@ -27,11 +27,14 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body ?? '{}')
     const patch = {}
     if (typeof body.enabled === 'boolean') patch.enabled = body.enabled
-    // Frecuencia en minutos (1 min a 7 días). Se acepta frequencyHours legado por compatibilidad.
+    if (typeof body.rotateSections === 'boolean') patch.rotateSections = body.rotateSections
+    // Frecuencia en minutos (mínimo de seguridad 5 min, máximo 7 días).
+    // Se acepta frequencyHours legado por compatibilidad.
+    const MIN_FREQ = 5, MAX_FREQ = 10080
     if (body.frequencyMinutes != null) {
-      patch.frequencyMinutes = Math.max(1, Math.min(10080, Math.round(Number(body.frequencyMinutes)) || 60))
+      patch.frequencyMinutes = Math.max(MIN_FREQ, Math.min(MAX_FREQ, Math.round(Number(body.frequencyMinutes)) || 60))
     } else if (body.frequencyHours != null) {
-      patch.frequencyMinutes = Math.max(1, Math.min(10080, Math.round((Number(body.frequencyHours) || 1) * 60)))
+      patch.frequencyMinutes = Math.max(MIN_FREQ, Math.min(MAX_FREQ, Math.round((Number(body.frequencyHours) || 1) * 60)))
     }
     if (body.provider && ['auto', 'openai', 'deepseek'].includes(body.provider)) patch.provider = body.provider
     if (typeof body.category === 'string' && body.category.trim()) patch.category = body.category.trim()

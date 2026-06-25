@@ -33,11 +33,13 @@ const DEFAULT_SETTINGS = {
   _id: 'autogen',
   enabled: false, // el cron solo genera si está activado
   frequencyMinutes: 60, // cada cuántos minutos generar (mínimo limitado por el cron base)
+  rotateSections: false, // true = una sección por corrida (ahorra costos); false = todas
   lastRunAt: null, // última generación automática
   lastError: null, // último error registrado
   category: 'Tecnología', // categoría por defecto para lo autogenerado
   provider: 'auto', // 'auto' | 'openai' | 'deepseek'
   _rr: 0, // contador round-robin para balanceo de carga
+  _sectionRr: 0, // puntero de rotación de secciones (cuando rotateSections está activo)
 }
 
 async function getSettings() {
