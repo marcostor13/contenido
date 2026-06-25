@@ -6,21 +6,29 @@ reales con la tecnología actual y la inteligencia artificial.
 
 ## Secciones
 
-En cada corrida del cron se genera **una pieza por cada sección** (todas con la misma
-frecuencia configurada). Las secciones y su tono están definidas en `api/lib/sections.js`:
+Por defecto, en cada corrida del cron se genera **una pieza por cada sección** (todas con la
+misma frecuencia configurada); con la **rotación** activada se genera una por corrida. Cada
+base temática tiene una variante **larga** (la de siempre) y una **corta** (más directa), que
+conviven como secciones separadas. Las secciones y su tono están definidas en `api/lib/sections.js`:
 
-1. **Historias con moraleja** (`historias`, categoría *Historias*). Noticias reales y
-   cotidianas convertidas en reels con storytelling y moraleja conectada con la IA y la
-   productividad. Tono más animado, con chispa y sarcasmo ligero. Parte de una noticia real.
-2. **Productividad & IA** (`productividad`, categoría *Productividad*). Herramientas
-   actuales, tips y trucos REALES para producir más con tecnología e inteligencia artificial.
-   Cierra con un bloque "Tu próximo paso" accionable. Parte de un ángulo rotativo.
-3. **Potencial Humano** (`potencial`, categoría *Potencial Humano*). Reflexiones y tips para
-   potenciar al ser humano (hábitos, foco, mentalidad, energía). Cierra con "Para llevarte
-   hoy". Parte de un ángulo rotativo.
+1. **Historias con moraleja** (`historias`, categoría *Historias*) y **Historias Express**
+   (`historias-corto`, categoría *Historias Express*). Noticias reales y cotidianas convertidas
+   en reels con storytelling y moraleja conectada con la IA. Tono animado, con chispa y sarcasmo
+   ligero. Parte de una noticia real.
+2. **Productividad & IA** (`productividad`, categoría *Productividad*) y **Productividad Express**
+   (`productividad-corto`, categoría *Productividad Express*). Herramientas actuales, tips y trucos
+   REALES para producir más con tecnología e IA. Cierra con "Tu próximo paso". Ángulo rotativo.
+3. **Potencial Humano** (`potencial`, categoría *Potencial Humano*) y **Potencial Express**
+   (`potencial-corto`, categoría *Potencial Express*). Reflexiones y tips para potenciar al ser
+   humano (hábitos, foco, mentalidad, energía). Cierra con "Para llevarte hoy". Ángulo rotativo.
+4. **Motivación** (`motivacional`, categoría *Motivación*). Pieza breve y potente que te hace
+   pensar en tu potencial, en lo que de verdad quieres y en lo que tienes que cambiar. Cierra con
+   "Tu reto de hoy" (una pregunta o acción que te confronta). Ángulo rotativo.
 
-Las secciones por ángulo eligen un tema no usado recientemente para variar en cada corrida;
-las categorías nuevas aparecen automáticamente como filtros en la página principal.
+La variante corta usa el mismo tono y los mismos ángulos que la larga, pero con un largo más
+breve (≈150-280 palabras; Motivación ≈120-220). Las secciones por ángulo eligen un tema no usado
+recientemente para variar en cada corrida; las categorías nuevas aparecen automáticamente como
+filtros en la página principal.
 
 ## Cómo funciona
 

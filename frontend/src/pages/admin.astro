@@ -76,8 +76,12 @@ import Base from '../layouts/Base.astro'
           <label class="label">Sección</label>
           <select id="g-section" class="input">
             <option value="historias">Historias con moraleja</option>
+            <option value="historias-corto">Historias Express (corto)</option>
             <option value="productividad">Productividad & IA</option>
+            <option value="productividad-corto">Productividad Express (corto)</option>
             <option value="potencial">Potencial Humano</option>
+            <option value="potencial-corto">Potencial Express (corto)</option>
+            <option value="motivacional">Motivación (corto)</option>
           </select>
         </div>
         <div class="field">
@@ -96,7 +100,7 @@ import Base from '../layouts/Base.astro'
 
       <!-- Disparo manual del flujo completo (todas las secciones) -->
       <h3 style="margin:0 0 .25rem">Generar todas las secciones ahora</h3>
-      <div class="hint">Ejecuta el flujo automático una vez y publica una pieza por cada sección: Historias con moraleja, Productividad & IA y Potencial Humano.</div>
+      <div class="hint">Ejecuta el flujo automático una vez y publica una pieza por cada sección (versiones largas y cortas de Historias, Productividad y Potencial, más Motivación). Con la rotación activada, genera solo la sección que toca.</div>
       <button id="gen-cron-btn" class="btn" style="background:#1f6feb">Generar todas las secciones ahora</button>
 
       <hr class="divider" style="margin:2rem 0" />

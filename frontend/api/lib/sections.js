@@ -1,13 +1,19 @@
 // Definición de las SECCIONES de contenido que el sistema genera.
 // Cada sección tiene su propio tono, su categoría y su forma de obtener material.
-// Todas se generan en la MISMA corrida del cron (misma frecuencia configurada).
+// Por defecto todas se generan en la MISMA corrida del cron (misma frecuencia);
+// con la rotación activada se genera una por corrida.
 //
-//  1) historias     — noticias reales convertidas en reels con moraleja (gancho emocional).
-//  2) productividad  — herramientas actuales, tips y trucos para producir más (tecnología + IA).
-//  3) potencial      — reflexiones y tips para potenciar al ser humano (mente, hábitos, foco).
+// Cada "base" temática tiene DOS variantes: una LARGA (la de siempre) y una CORTA
+// (más directa), que conviven como secciones separadas:
+//   1) historias / historias-corto   — noticias reales con moraleja conectada a la IA.
+//   2) productividad / -corto         — herramientas, tips y trucos (tecnología + IA).
+//   3) potencial / -corto             — reflexiones y tips para potenciar al ser humano.
+// Y una sección propia, breve por naturaleza:
+//   4) motivacional                   — motivación que te hace pensar en tu potencial,
+//                                        en lo que quieres y en lo que tienes que cambiar.
 //
-// Tono general nuevo: más interesante, animado y con un sarcasmo ligero (con chispa,
-// nunca ofensivo). Honesto siempre: nada de datos, cifras ni citas inventadas.
+// Tono general: interesante, animado y con un sarcasmo ligero (con chispa, nunca
+// ofensivo). Honesto siempre: nada de datos, cifras ni citas inventadas.
 
 // — Bloques reutilizables de las instrucciones —
 
@@ -35,9 +41,14 @@ const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactament
   "viralityNotes": "1-2 frases sobre por qué puede volverse viral"
 }`
 
-// ——— Sección 1: Historias con moraleja (más animada y sarcástica) ———
+// — Presets de longitud (se inyectan en el prompt de cada sección) —
+const LARGO = 'Largo: entre 500 y 900 palabras.'
+const CORTO = 'Largo: CORTO y directo, entre 150 y 280 palabras. Sin relleno: cada frase tiene que ganarse su lugar.'
+const CORTO_MOTIV = 'Largo: BREVE y potente, entre 120 y 220 palabras. Que cada línea pegue; si una frase no aporta, fuera.'
 
-const HISTORIAS_SYSTEM = `Eres un creador de contenido viral en español, estilo guion de reel, para un público general (NO técnico).
+// ——— Base 1: Historias con moraleja (noticia real → reel con moraleja IA) ———
+
+const historiasSystem = (LEN) => `Eres un creador de contenido viral en español, estilo guion de reel, para un público general (NO técnico).
 Tu materia prima son noticias REALES, cotidianas, impactantes y que despiertan curiosidad: historias humanas,
 hechos insólitos, sorprendentes, de la vida real. NO noticias técnicas ni de tecnología.
 
@@ -57,7 +68,7 @@ Reglas de tono y estilo:
 - Cierra SIEMPRE con una moraleja clara y accionable sobre cómo aprovechar la IA en el día a día.
 - ${HONESTIDAD}
 - Markdown limpio: subtítulos con ## y, si suma, alguna cita con >. Cierra con un bloque "## La moraleja".
-- Largo: entre 500 y 900 palabras.
+- ${LEN}
 
 ${JSON_SPEC}`
 
@@ -69,7 +80,7 @@ Paso 1 — Tómalo como una historia cotidiana que engancha y analiza qué la ha
 Paso 2 — Analiza qué la haría viral y aplica storytelling de principio a fin, con tu chispa y sarcasmo ligero.
 Paso 3 — Escribe el artículo final y cierra con una moraleja que conecte la historia con cómo usar la
          inteligencia artificial para ser más productivo. La conexión debe sentirse natural, no forzada.
-Recuerda: contenido real y verificable, nada inventado. Escribe en español peruano (tuteo, "tú").`
+Recuerda: contenido real y verificable, nada inventado. Respeta el largo indicado. Español peruano (tuteo, "tú").`
   }
 
   return `Toma esta noticia REAL y cotidiana (NO técnica) y conviértela en un reel con moraleja.
@@ -85,12 +96,12 @@ Paso 1 — Identifica el gancho emocional y por qué esta historia despierta cur
 Paso 2 — Aplica viralidad y storytelling: cuéntala como una historia que atrape, con humor inteligente.
 Paso 3 — Cierra con una moraleja que conecte esta historia cotidiana con la inteligencia artificial y con
          cómo aprovecharla para ser más productivo en el día a día.
-No inventes cifras ni citas que no estén en el material. Escribe en español peruano (tuteo, "tú").`
+No inventes cifras ni citas que no estén en el material. Respeta el largo indicado. Español peruano (tuteo, "tú").`
 }
 
-// ——— Sección 2: Productividad & IA (herramientas, tips y trucos) ———
+// ——— Base 2: Productividad & IA (herramientas, tips y trucos) ———
 
-const PRODUCTIVIDAD_SYSTEM = `Eres un creador de contenido práctico en español sobre PRODUCTIVIDAD con tecnología e inteligencia artificial,
+const productividadSystem = (LEN) => `Eres un creador de contenido práctico en español sobre PRODUCTIVIDAD con tecnología e inteligencia artificial,
 para un público general (NO técnico). Tu misión es darle a la gente herramientas actuales, tips y trucos REALES
 que de verdad les hagan ganar tiempo y trabajar mejor en el día a día.
 
@@ -108,7 +119,7 @@ Reglas de tono y estilo:
 - ${HONESTIDAD} Si no estás seguro de un precio o una función exacta, dilo en general (no inventes specs).
 - Markdown limpio: subtítulos con ##, listas con viñetas o pasos numerados cuando ayude. Cierra con un bloque
   "## Tu próximo paso" con 1-3 acciones concretas para aplicar hoy.
-- Largo: entre 500 y 900 palabras.
+- ${LEN}
 
 ${JSON_SPEC}`
 
@@ -120,12 +131,12 @@ Paso 1 — Empieza con un problema cotidiano y real que el lector reconozca al i
 Paso 2 — Presenta herramientas actuales, tips o trucos REALES (que existan) para resolverlo, con ejemplos claros
          y, si aplica, pasos simples para empezar. Apóyate en la IA como aliada práctica.
 Paso 3 — Cierra con "## Tu próximo paso": 1-3 acciones concretas que pueda hacer hoy mismo.
-Mantén la chispa y el sarcasmo ligero, pero el valor práctico manda. Nada inventado. Español peruano (tuteo, "tú").`
+Mantén la chispa y el sarcasmo ligero, pero el valor práctico manda. Respeta el largo indicado. Nada inventado. Español peruano (tuteo, "tú").`
 }
 
-// ——— Sección 3: Potencial Humano (reflexiones y tips para crecer) ———
+// ——— Base 3: Potencial Humano (reflexiones y tips para crecer) ———
 
-const POTENCIAL_SYSTEM = `Eres un creador de contenido en español sobre POTENCIAL HUMANO: reflexiones, hábitos, mentalidad, foco,
+const potencialSystem = (LEN) => `Eres un creador de contenido en español sobre POTENCIAL HUMANO: reflexiones, hábitos, mentalidad, foco,
 disciplina, energía y bienestar, para un público general. Tu misión es ayudar a la gente a sacar lo mejor de sí
 misma con ideas que inspiren PERO que también se puedan aplicar en la vida real.
 
@@ -142,7 +153,7 @@ Reglas de tono y estilo:
 - ${HONESTIDAD} Si citas una idea conocida, preséntala como idea general, no como estudio con cifras inventadas.
 - Markdown limpio: subtítulos con ##, alguna cita con > si suma. Cierra con un bloque "## Para llevarte hoy"
   con 1-3 ideas o micro-hábitos accionables.
-- Largo: entre 500 y 900 palabras.
+- ${LEN}
 
 ${JSON_SPEC}`
 
@@ -153,7 +164,41 @@ function potencialUserPrompt({ topic, angle }) {
 Paso 1 — Empieza con un gancho honesto: una verdad incómoda, una pregunta o una escena que cualquiera reconozca.
 Paso 2 — Desarrolla una reflexión que valga la pena y bájala a tierra con tips o micro-hábitos accionables.
 Paso 3 — Cierra con "## Para llevarte hoy": 1-3 ideas o micro-hábitos que pueda empezar a aplicar de inmediato.
-Inspira sin clichés vacíos, mantén la chispa y el sarcasmo ligero. Nada inventado. Español peruano (tuteo, "tú").`
+Inspira sin clichés vacíos, mantén la chispa y el sarcasmo ligero. Respeta el largo indicado. Nada inventado. Español peruano (tuteo, "tú").`
+}
+
+// ——— Sección 4: Motivación (breve, te hace pensar en tu potencial y en cambiar) ———
+
+const motivacionalSystem = (LEN) => `Eres un creador de contenido MOTIVACIONAL en español que hace PENSAR. Tu objetivo no es solo animar:
+es sacudir un poco al lector para que reflexione sobre su POTENCIAL, sobre lo que de verdad QUIERE y sobre eso
+que en el fondo sabe que TIENE QUE CAMBIAR en su vida y viene postergando.
+
+${DIALECTO}
+
+${SARCASMO}
+(Aquí el sarcasmo es más sutil: sirve para romper el cliché motivacional barato, nunca para burlarte del lector.)
+
+Reglas de tono y estilo:
+- Mensaje potente y honesto: que inspire y a la vez incomode un poquito (en el buen sentido), que mueva algo por dentro.
+- Háblale al lector de "tú", directo y cercano, como ese amigo que se anima a decirte la verdad que necesitas oír.
+- Hazlo pensar en su propia vida: en quién quiere ser, en lo que está tolerando y en lo que viene aplazando.
+- Nada de frases de taza, ni clichés vacíos de coach de aeropuerto, ni promesas mágicas. Verdad cruda y humana.
+- ${HONESTIDAD}
+- Markdown limpio y aireado, pocos subtítulos. Cierra SIEMPRE con un bloque "## Tu reto de hoy" con UNA pregunta
+  o una acción concreta que lo obligue a mirarse de frente.
+- ${LEN}
+
+${JSON_SPEC}`
+
+function motivacionalUserPrompt({ topic, angle }) {
+  const eje = topic || angle
+  return `Escribe una pieza breve de la sección "Motivación" sobre: "${eje}".
+
+Paso 1 — Abre con una frase que frene el scroll y toque una fibra: una verdad incómoda o una pregunta directa.
+Paso 2 — Desarrolla un mensaje corto pero potente que lo haga pensar en su potencial, en lo que quiere y en lo
+         que tiene que cambiar. Sin clichés, con honestidad.
+Paso 3 — Cierra con "## Tu reto de hoy": una sola pregunta o acción concreta que lo confronte con su propia vida.
+Breve, potente y honesto. Respeta el largo indicado. Nada inventado. Español peruano (tuteo, "tú").`
 }
 
 // — Ángulos rotativos para las secciones que no parten de una noticia —
@@ -189,6 +234,21 @@ const POTENCIAL_ANGLES = [
   'pequeños rituales de la mañana que cambian todo tu día',
 ]
 
+const MOTIVACIONAL_ANGLES = [
+  'eso que vienes postergando y sabes que tienes que empezar hoy',
+  'la diferencia entre quien quieres ser y quien estás siendo hoy',
+  'qué harías distinto si no tuvieras miedo a fallar',
+  'el costo real de quedarte un año más en tu zona de confort',
+  'la persona en la que te convertirás en 5 años si no cambias nada',
+  'eso que toleras y que, sin que lo notes, te está apagando',
+  'por qué sigues esperando un "momento perfecto" que nunca llega',
+  'qué quieres de verdad, y no lo que te dijeron que deberías querer',
+  'el hábito que, si lo cambiaras hoy, cambiaría todo lo demás',
+  'a quién estás dejando de lado por estar siempre "ocupado"',
+  'qué pensaría tu yo de la infancia si viera tu vida de hoy',
+  'la excusa favorita que usas para no avanzar',
+]
+
 const slugifyAngle = (s) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 60)
@@ -204,36 +264,47 @@ function pickFreshAngle(section, usedKeys = new Set()) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-// — Catálogo de secciones —
+// — Construcción del catálogo de secciones (variante larga + corta por cada base) —
 
-const SECTIONS = [
+const BASES = [
   {
-    key: 'historias',
-    name: 'Historias con moraleja',
-    category: 'Historias',
-    type: 'news', // parte de una noticia real
-    system: HISTORIAS_SYSTEM,
-    buildUserPrompt: historiasUserPrompt,
+    key: 'historias', type: 'news', system: historiasSystem, buildUserPrompt: historiasUserPrompt,
+    long: { name: 'Historias con moraleja', category: 'Historias' },
+    short: { name: 'Historias Express', category: 'Historias Express' },
   },
   {
-    key: 'productividad',
-    name: 'Productividad & IA',
-    category: 'Productividad',
-    type: 'topic', // parte de un ángulo rotativo
-    angles: PRODUCTIVIDAD_ANGLES,
-    system: PRODUCTIVIDAD_SYSTEM,
-    buildUserPrompt: productividadUserPrompt,
+    key: 'productividad', type: 'topic', angles: PRODUCTIVIDAD_ANGLES,
+    system: productividadSystem, buildUserPrompt: productividadUserPrompt,
+    long: { name: 'Productividad & IA', category: 'Productividad' },
+    short: { name: 'Productividad Express', category: 'Productividad Express' },
   },
   {
-    key: 'potencial',
-    name: 'Potencial Humano',
-    category: 'Potencial Humano',
-    type: 'topic',
-    angles: POTENCIAL_ANGLES,
-    system: POTENCIAL_SYSTEM,
-    buildUserPrompt: potencialUserPrompt,
+    key: 'potencial', type: 'topic', angles: POTENCIAL_ANGLES,
+    system: potencialSystem, buildUserPrompt: potencialUserPrompt,
+    long: { name: 'Potencial Humano', category: 'Potencial Humano' },
+    short: { name: 'Potencial Express', category: 'Potencial Express' },
   },
 ]
+
+const SECTIONS = []
+for (const b of BASES) {
+  // Variante LARGA: mantiene el key y la categoría de siempre (no rompe lo ya generado).
+  SECTIONS.push({
+    key: b.key, name: b.long.name, category: b.long.category, type: b.type,
+    angles: b.angles, system: b.system(LARGO), buildUserPrompt: b.buildUserPrompt,
+  })
+  // Variante CORTA: nueva sección, mismo tono y ángulos, contenido más breve.
+  SECTIONS.push({
+    key: `${b.key}-corto`, name: b.short.name, category: b.short.category, type: b.type,
+    angles: b.angles, system: b.system(CORTO), buildUserPrompt: b.buildUserPrompt,
+  })
+}
+
+// Sección propia: Motivación (breve por naturaleza).
+SECTIONS.push({
+  key: 'motivacional', name: 'Motivación', category: 'Motivación', type: 'topic',
+  angles: MOTIVACIONAL_ANGLES, system: motivacionalSystem(CORTO_MOTIV), buildUserPrompt: motivacionalUserPrompt,
+})
 
 const SECTION_MAP = Object.fromEntries(SECTIONS.map(s => [s.key, s]))
 
