@@ -42,9 +42,16 @@ const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactament
 }`
 
 // — Presets de longitud (se inyectan en el prompt de cada sección) —
-const LARGO = 'Largo: entre 500 y 900 palabras.'
-const CORTO = 'Largo: CORTO y directo, entre 150 y 280 palabras. Sin relleno: cada frase tiene que ganarse su lugar.'
-const CORTO_MOTIV = 'Largo: BREVE y potente, entre 120 y 220 palabras. Que cada línea pegue; si una frase no aporta, fuera.'
+// IMPORTANTE: el contenido se publica como post normal de LinkedIn, cuyo límite es 3000
+// caracteres (contando espacios, formato y hashtags). Los topes de abajo son sobre el
+// post COMPLETO (título + cuerpo) y dejan margen para el formato y los hashtags.
+const LINKEDIN_LIMIT_NOTE = `Este contenido se publicará como un post normal de LinkedIn (límite 3000 caracteres,
+contando espacios). El post completo debe verse bien formateado y NO superar el tope de caracteres indicado abajo.
+Cuenta los caracteres del título más el cuerpo y mantente por debajo del tope; aprovecha bien el espacio sin rellenar.`
+
+const LARGO = 'Largo: el post completo (título + cuerpo) NO debe superar 2500 caracteres contando espacios. Apunta a 1700-2400 caracteres (aprox. 300-420 palabras).'
+const CORTO = 'Largo: CORTO y directo. El post completo NO debe superar 1200 caracteres contando espacios (aprox. 160-200 palabras). Sin relleno: cada frase tiene que ganarse su lugar.'
+const CORTO_MOTIV = 'Largo: BREVE y potente. El post completo NO debe superar 900 caracteres contando espacios (aprox. 120-150 palabras). Que cada línea pegue; si una frase no aporta, fuera.'
 
 // ——— Base 1: Historias con moraleja (noticia real → reel con moraleja IA) ———
 
@@ -286,24 +293,27 @@ const BASES = [
   },
 ]
 
+// Inyecta la nota del límite de LinkedIn al final de cada prompt de sistema.
+const withLimit = (s) => `${s}\n\n${LINKEDIN_LIMIT_NOTE}`
+
 const SECTIONS = []
 for (const b of BASES) {
   // Variante LARGA: mantiene el key y la categoría de siempre (no rompe lo ya generado).
   SECTIONS.push({
     key: b.key, name: b.long.name, category: b.long.category, type: b.type,
-    angles: b.angles, system: b.system(LARGO), buildUserPrompt: b.buildUserPrompt,
+    angles: b.angles, system: withLimit(b.system(LARGO)), buildUserPrompt: b.buildUserPrompt,
   })
   // Variante CORTA: nueva sección, mismo tono y ángulos, contenido más breve.
   SECTIONS.push({
     key: `${b.key}-corto`, name: b.short.name, category: b.short.category, type: b.type,
-    angles: b.angles, system: b.system(CORTO), buildUserPrompt: b.buildUserPrompt,
+    angles: b.angles, system: withLimit(b.system(CORTO)), buildUserPrompt: b.buildUserPrompt,
   })
 }
 
 // Sección propia: Motivación (breve por naturaleza).
 SECTIONS.push({
   key: 'motivacional', name: 'Motivación', category: 'Motivación', type: 'topic',
-  angles: MOTIVACIONAL_ANGLES, system: motivacionalSystem(CORTO_MOTIV), buildUserPrompt: motivacionalUserPrompt,
+  angles: MOTIVACIONAL_ANGLES, system: withLimit(motivacionalSystem(CORTO_MOTIV)), buildUserPrompt: motivacionalUserPrompt,
 })
 
 const SECTION_MAP = Object.fromEntries(SECTIONS.map(s => [s.key, s]))

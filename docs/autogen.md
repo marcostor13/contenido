@@ -30,6 +30,19 @@ breve (≈150-280 palabras; Motivación ≈120-220). Las secciones por ángulo e
 recientemente para variar en cada corrida; las categorías nuevas aparecen automáticamente como
 filtros en la página principal.
 
+## Límite de LinkedIn (3000 caracteres)
+
+Un post normal de LinkedIn admite **3000 caracteres** (contando espacios). Todo el contenido se
+genera para entrar en ese tope **ya formateado** (título en negrita + cuerpo + hashtags):
+
+- Cada sección lleva en su prompt un **tope de caracteres** sobre el post completo, con margen para
+  el formato y los hashtags (largas ≤2500, cortas ≤1200, Motivación ≤900).
+- Tras generar, `generateArticle` mide el texto formateado para LinkedIn con `api/lib/linkedin.js`.
+  Si se pasa de 3000, pide al modelo una **versión más corta** que conserve gancho, hilo y cierre y,
+  como último recurso, **recorta** párrafos del final para no exceder nunca el límite.
+- En la página del artículo, el botón *Copiar para LinkedIn* muestra el contador `N/3000` para
+  verificar de un vistazo que el post entra. El conversor del cliente y el del servidor son espejos.
+
 ## Cómo funciona
 
 0. **Aprender (antes de todo).** En cada corrida del cron, primero se ejecuta una fase de

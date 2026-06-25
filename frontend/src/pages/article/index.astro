@@ -13,12 +13,13 @@ import Base from '../../layouts/Base.astro'
     <div id="article-meta" class="article-meta"></div>
     <h1 id="article-title" class="article-title"></h1>
     <p id="article-excerpt" class="article-excerpt"></p>
-    <div style="margin:.75rem 0 .25rem">
+    <div style="margin:.75rem 0 .25rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
       <button id="copy-linkedin" class="btn ghost" style="padding:.45rem .8rem;font-size:.85rem">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:.35rem">
           <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
         </svg>Copiar para LinkedIn
       </button>
+      <span id="li-count" class="date" title="Caracteres del post formateado para LinkedIn (límite 3000)"></span>
     </div>
     <hr class="divider" />
     <div id="article-body" class="prose"></div>
@@ -72,6 +73,12 @@ import Base from '../../layouts/Base.astro'
     } else {
       tagsEl.style.display = 'none'
     }
+
+    // Mostrar cuántos caracteres ocupa el post ya formateado para LinkedIn (límite 3000).
+    const liCount = document.getElementById('li-count')!
+    const len = markdownToLinkedIn(item).length
+    liCount.textContent = `${len.toLocaleString('es')}/3000`
+    liCount.style.color = len > 3000 ? 'var(--danger)' : 'var(--muted)'
 
     show('article')
   }

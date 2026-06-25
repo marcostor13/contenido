@@ -15,6 +15,7 @@ const { pickProvider, chat } = require('./llm')
 const { pickFreshStory, fetchArticleText } = require('./sources')
 const { learnAndResearch } = require('./learn')
 const { SECTIONS, getSection, pickFreshAngle } = require('./sections')
+const { LINKEDIN_MAX, linkedinLength, trimToFit } = require('./linkedin')
 
 const slugify = (s) =>
   s.toLowerCase()
@@ -32,6 +33,49 @@ function parseArticle(raw) {
   const end = txt.lastIndexOf('}')
   if (start !== -1 && end !== -1) txt = txt.slice(start, end + 1)
   return JSON.parse(txt)
+}
+
+// Asegura que el post entre en el límite de LinkedIn midiendo el texto YA formateado
+// (título en negrita + cuerpo + hashtags). Si excede:
+//   1) pide al modelo una versión más corta que respete el formato y el cierre;
+//   2) si aún se pasa, recorta párrafos del final como red de seguridad.
+async function fitLinkedIn(a, provider, baseMessages) {
+  const measure = (art) => linkedinLength({ title: art.title, content: art.content, tags: art.tags })
+  if (measure(a) <= LINKEDIN_MAX) return a
+
+  // Objetivo con margen para el formato (negritas) y los hashtags.
+  const target = LINKEDIN_MAX - 250
+  try {
+    const correction = `El artículo que generaste se publicará como un post normal de LinkedIn, cuyo límite es
+${LINKEDIN_MAX} caracteres (contando espacios, formato y hashtags). Tu versión se pasa.
+
+Reescríbelo MÁS CORTO para que TODO el post quede por debajo de ${target} caracteres, SIN perder el gancho
+inicial, el hilo ni el bloque de cierre, y manteniendo el mismo formato markdown y el mismo tono.
+Recorta lo accesorio, no lo esencial. Devuelve el MISMO objeto JSON con exactamente las mismas claves.
+
+TÍTULO ACTUAL: ${a.title}
+CONTENIDO ACTUAL:
+"""
+${a.content}
+"""`
+    const raw = await chat(
+      provider,
+      [...baseMessages, { role: 'assistant', content: JSON.stringify(a) }, { role: 'user', content: correction }],
+      { json: true, temperature: 0.6 }
+    )
+    const shorter = parseArticle(raw)
+    if (shorter.title && shorter.content && measure(shorter) < measure(a)) {
+      a = shorter
+    }
+  } catch {
+    // Si la corrección falla, seguimos con el recorte de seguridad.
+  }
+
+  if (measure(a) > LINKEDIN_MAX) {
+    const trimmed = trimToFit({ title: a.title, content: a.content, tags: a.tags }, LINKEDIN_MAX)
+    a = { ...a, content: trimmed.content }
+  }
+  return a
 }
 
 // Ejecuta los pasos 2 y 3 sobre un material dado y guarda el artículo.
@@ -53,13 +97,18 @@ async function generateArticle({
     ? `${sec.system}\n\nGUÍA APRENDIDA (aplícala para maximizar la viralidad de este artículo):\n${playbook}`
     : sec.system
 
-  const raw = await chat(provider, [
+  const messages = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
-  ], { json: true, temperature: 0.85 })
+  ]
+  const raw = await chat(provider, messages, { json: true, temperature: 0.85 })
 
-  const a = parseArticle(raw)
+  let a = parseArticle(raw)
   if (!a.title || !a.content) throw new Error('El modelo no devolvió título o contenido válidos.')
+
+  // Garantizar que el post entre en el límite de LinkedIn (3000 caracteres con formato
+  // y hashtags). Si se pasa, pedimos una corrección y, como último recurso, recortamos.
+  a = await fitLinkedIn(a, provider, messages)
 
   const col = await articles()
   let slug = (a.slug && slugify(a.slug)) || slugify(a.title)
