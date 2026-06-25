@@ -13,6 +13,13 @@ import Base from '../../layouts/Base.astro'
     <div id="article-meta" class="article-meta"></div>
     <h1 id="article-title" class="article-title"></h1>
     <p id="article-excerpt" class="article-excerpt"></p>
+    <div style="margin:.75rem 0 .25rem">
+      <button id="copy-linkedin" class="btn ghost" style="padding:.45rem .8rem;font-size:.85rem">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:.35rem">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>Copiar para LinkedIn
+      </button>
+    </div>
     <hr class="divider" />
     <div id="article-body" class="prose"></div>
     <div id="article-tags" style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.5rem"></div>
@@ -24,6 +31,7 @@ import Base from '../../layouts/Base.astro'
   import { marked } from 'marked'
 
   const slug = window.location.pathname.replace(/^\/article\//, '').replace(/\/$/, '')
+  let currentItem: any = null
 
   async function load() {
     if (!slug) { show('error'); return }
@@ -31,6 +39,7 @@ import Base from '../../layouts/Base.astro'
     const res = await fetch(`/api/content?slug=${encodeURIComponent(slug)}`)
     if (!res.ok) { show('error'); return }
     const item = await res.json()
+    currentItem = item
     render(item)
   }
 
@@ -66,6 +75,91 @@ import Base from '../../layouts/Base.astro'
 
     show('article')
   }
+
+  // ——— Copiar para LinkedIn ———
+  // LinkedIn no renderiza markdown: convertimos a texto plano legible (negritas en
+  // unicode, viñetas con •, encabezados separados) y agregamos los tags como hashtags.
+
+  // Mapea A-Z, a-z y 0-9 a sus equivalentes "bold" sans-serif de unicode (lo que
+  // usan las herramientas de LinkedIn para resaltar texto).
+  function toBold(str: string): string {
+    let out = ''
+    for (const ch of str) {
+      const c = ch.codePointAt(0)!
+      if (c >= 65 && c <= 90) out += String.fromCodePoint(0x1D5D4 + (c - 65))       // A-Z
+      else if (c >= 97 && c <= 122) out += String.fromCodePoint(0x1D5EE + (c - 97)) // a-z
+      else if (c >= 48 && c <= 57) out += String.fromCodePoint(0x1D7EC + (c - 48))  // 0-9
+      else out += ch
+    }
+    return out
+  }
+
+  // Aplica las marcas markdown "en línea" (negrita, cursiva, enlaces, código).
+  function inlineMd(s: string): string {
+    return s
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')        // [texto](url) -> texto (url)
+      .replace(/\*\*([^*]+)\*\*/g, (_, t) => toBold(t))       // **negrita**
+      .replace(/__([^_]+)__/g, (_, t) => toBold(t))           // __negrita__
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1$2')              // *cursiva* -> texto plano
+      .replace(/`([^`]+)`/g, '$1')                            // `código` -> texto
+  }
+
+  function markdownToLinkedIn(item: any): string {
+    const lines = String(item.content || '').replace(/\r\n/g, '\n').split('\n')
+    const out: string[] = []
+    for (const raw of lines) {
+      const line = raw.replace(/\s+$/,'')
+      if (/^\s*([-*_]\s*){3,}$/.test(line)) { out.push(''); continue }   // --- regla horizontal
+      const h = line.match(/^#{1,6}\s+(.*)$/)
+      if (h) { out.push(''); out.push(toBold(inlineMd(h[1]))); continue } // # Encabezado
+      const q = line.match(/^>\s?(.*)$/)
+      if (q) { out.push('“' + inlineMd(q[1]) + '”'); continue }           // > cita
+      const b = line.match(/^\s*[-*]\s+(.*)$/)
+      if (b) { out.push('• ' + inlineMd(b[1])); continue }                // viñeta
+      out.push(inlineMd(line))
+    }
+
+    let body = out.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+
+    const title = toBold(String(item.title || '').trim())
+    const tags = Array.isArray(item.tags) ? item.tags : []
+    const hashtags = tags
+      .map((t: string) => '#' + String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]/g, ''))
+      .filter((h: string) => h.length > 1)
+      .join(' ')
+
+    return [title, body, hashtags].filter(Boolean).join('\n\n')
+  }
+
+  async function copyText(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch {
+      // Fallback para navegadores/contextos sin Clipboard API.
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'; ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        const ok = document.execCommand('copy')
+        document.body.removeChild(ta)
+        return ok
+      } catch { return false }
+    }
+  }
+
+  const copyBtn = document.getElementById('copy-linkedin') as HTMLButtonElement
+  copyBtn.addEventListener('click', async () => {
+    if (!currentItem) return
+    const text = markdownToLinkedIn(currentItem)
+    const ok = await copyText(text)
+    const original = copyBtn.innerHTML
+    copyBtn.textContent = ok ? '✅ ¡Copiado!' : '❌ No se pudo copiar'
+    if (ok) copyBtn.classList.add('success')
+    setTimeout(() => { copyBtn.innerHTML = original; copyBtn.classList.remove('success') }, 2000)
+  })
 
   load()
 </script>
