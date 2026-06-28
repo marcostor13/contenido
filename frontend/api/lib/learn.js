@@ -61,7 +61,7 @@ async function learnAndResearch({ providerPref = 'auto', rr = 0 } = {}) {
         seed: true,
         cycle: 0,
         learnings: 'Estrategia base 2026 de viralidad y monetización (fundamento permanente).',
-        tools: ['regla de los 3 segundos', 'ganchos', 'open loops', 'CTAs', 'afiliados orgánicos', 'productos digitales', 'suscripciones', 'UGC'],
+        tools: ['regla de los 3 segundos', 'ganchos', 'open loops', 'postura/debate sano', 'pregunta abierta al cierre', 'CTAs de comentario', 'afiliados orgánicos', 'productos digitales', 'suscripciones', 'UGC'],
         text: BASE_STRATEGY,
         createdAt: new Date(),
       })
