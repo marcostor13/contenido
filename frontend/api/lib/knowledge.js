@@ -28,6 +28,28 @@ PLAN POR FASES (referencia de prioridades)
 - Fase 3: venta directa (infoproducto de ticket bajo) y colaboraciones (marketplaces).
 - Fase 4: ingresos recurrentes (suscripciones, comunidad que decide temas).
 
-Regla de oro: todo debe sentirse auténtico y útil; la monetización es consecuencia de la confianza, no al revés.`
+Regla de oro: todo debe sentirse auténtico y útil; la monetización es consecuencia de la confianza, no al revés.
+
+INTERACCIÓN Y DEBATE (cómo generar más comentarios y conversación — clave 2026)
+- Toma una POSTURA clara y firme sobre el tema: un punto de vista con el que la gente quiera estar de acuerdo o debatir.
+  Es debate sano y conversación, NO polémica gratuita, ataques, ni rage bait tóxico (eso lo penalizan las plataformas).
+- Plantea una tensión o "verdad incómoda" relacionada con la noticia y la IA/productividad que invite a opinar.
+- Cierra SIEMPRE con una PREGUNTA ABIERTA directa al lector (CTA de comentario): es la táctica más efectiva para
+  generar comentarios reales. Ej: "¿Tú qué harías?", "¿Estás de acuerdo o crees que es al revés?".
+- Invita explícitamente a comentar, guardar o compartir su experiencia.
+- Muestra el lado humano y auténtico (procesos, errores, lo real) para fomentar empatía y participación.
+- El gancho debe funcionar en menos de 1 segundo: la decisión de seguir o hacer scroll es casi instantánea.
+- Recuerda al creador (no en el texto del artículo): responder los comentarios en la primera hora crea "conversation
+  threads", una señal de ranking de alto peso; conviene quedarse activo tras publicar.
+
+STORYTELLING DE CALIDAD (cómo se hace BIEN, no trillado — prioridad máxima)
+- Especificidad sobre vaguedad: detalles concretos y sensoriales, no generalidades ("se quedó mirando el sobre sin
+  abrir", no "estaba nervioso"). Lo abstracto no se recuerda; lo concreto sí.
+- Mostrar, no explicar: deja que la enseñanza EMERJA de la historia; no la anuncies con "la moraleja es...".
+- Transformación: un antes y un después reales (el problema y la solución, la vieja forma y la nueva).
+- La conexión historia → IA debe NACER del principio humano de ESA historia, mediante un paralelo específico y no
+  obvio. Si la moraleja sirve para cualquier otra noticia, está mal hecha.
+- PROHIBIDO el relleno: nada de listas de apps pegadas con calzador (ChatGPT/Notion/Calendly como cierre genérico),
+  ni muletillas de gurú ("plot twist", "tu salvavidas", "en un mundo donde...", "game changer"). Voz propia y honesta.`
 
 module.exports = { BASE_STRATEGY }

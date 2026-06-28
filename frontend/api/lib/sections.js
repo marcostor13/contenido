@@ -29,6 +29,25 @@ una sonrisa. Cero relleno y cero acartonamiento corporativo.`
 const HONESTIDAD = `Todo se basa en información REAL y verificable. NO inventes datos, cifras, estudios ni citas.
 Si no estás seguro de un dato, quédate en lo general y cierto. Las herramientas que menciones deben existir de verdad.`
 
+const ANTICLICHE = `FRESCURA — HUYE DE LO TRILLADO (esto importa mucho):
+- Cero muletillas de gurú ni transiciones de molde: PROHIBIDO "aquí viene el plot twist", "spoiler alert",
+  "la moraleja es clara", "en un mundo donde...", "no es magia, es...", "tu salvavidas", "game changer",
+  "y aquí está lo mejor", y cualquier frase hecha de coach. Si ya la leíste mil veces, no la uses.
+- Específico, no vago: detalles concretos y sensoriales en vez de generalidades ("se quedó mirando el sobre sin
+  abrir", no "estaba nervioso"). MUESTRA, no expliques.
+- Nada que pudiera servir igual para cualquier otro texto: si tu párrafo es intercambiable, está mal. Que se sienta único.
+- Transformación real: un antes y un después que se sientan verdaderos, no un cierre motivacional prefabricado.
+- Voz humana y honesta; la gente huele la autenticidad fabricada a kilómetros.`
+
+const INTERACCION = `INTERACCIÓN Y DEBATE (clave para generar comentarios y conversación):
+- Toma una POSTURA clara y firme: un punto de vista con el que la gente quiera estar de acuerdo o debatir. Es
+  debate sano, NO polémica gratuita, ataques ni rage bait tóxico (eso lo penalizan las plataformas y resta credibilidad).
+- Plantea una tensión o "verdad incómoda" que dé ganas de opinar y de etiquetar a alguien.
+- El gancho inicial debe funcionar en menos de 1 segundo: la decisión de seguir o hacer scroll es casi instantánea.
+- Después del bloque de cierre, termina con UNA pregunta abierta y directa al lector que lo invite a comentar su
+  opinión o su experiencia (ej: "¿Tú qué harías?", "¿Estás de acuerdo o crees que es al revés?"). Que suene natural,
+  no un formulismo. Si tu bloque de cierre ya es una pregunta o un reto que interpela al lector, eso ya cumple.`
+
 const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactamente estas claves:
 {
   "title": "título atractivo y con gancho",
@@ -60,8 +79,18 @@ Tu materia prima son noticias REALES, cotidianas, impactantes y que despiertan c
 hechos insólitos, sorprendentes, de la vida real. NO noticias técnicas ni de tecnología.
 
 Tu trabajo: tomar esa noticia cotidiana y convertirla en un reel con viralidad y storytelling, que termine
-en una MORALEJA o enseñanza que conecte con la inteligencia artificial y con cómo usarla para ser más productivo.
-La noticia es el gancho emocional; la IA y la productividad son el aprendizaje final.
+en una MORALEJA conectada con la inteligencia artificial — pero de forma ORGÁNICA, NO forzada ni de relleno.
+
+CÓMO CONECTAR LA HISTORIA CON LA IA (esto es lo MÁS importante, hazlo bien o el contenido fracasa):
+1. Primero encuentra el PRINCIPIO humano que hace memorable esta historia concreta: una decisión, un patrón,
+   una tensión, un error, una verdad sobre cómo actuamos las personas. Ese principio es el puente.
+2. Conecta ESE principio con la IA mediante UN paralelo específico y no obvio: ¿qué nos enseña ESTA historia
+   sobre cómo (o cómo NO) usar la IA en nuestra vida o trabajo? La conexión debe NACER de la historia, no al revés.
+3. La prueba de fuego: si tu moraleja sirve igual para cualquier otra noticia, está MAL. Reescríbela hasta que
+   solo pueda existir gracias a ESTA historia en particular.
+4. PROHIBIDO el cierre genérico tipo "usa ChatGPT para resumir correos, Notion para organizarte y Calendly para
+   agendar". Nada de listas de apps pegadas con calzador. Si una herramienta encaja de verdad, menciona UNA sola,
+   puntual y bien justificada por la historia.
 
 ${DIALECTO}
 
@@ -69,10 +98,10 @@ ${SARCASMO}
 
 Reglas de tono y estilo:
 - Amical y cercano, como si le contaras algo fascinante a un amigo (uno gracioso). Cero jerga técnica.
-- Que enganche a cualquiera: empieza con un gancho fuerte que genere curiosidad y dé ganas de seguir.
-- Storytelling de principio a fin: cuenta la historia, genera tensión, suelta algún comentario con ironía, y recién al final revela la enseñanza.
-- La conexión con la IA/productividad debe sentirse natural y reveladora, no forzada ni publicitaria.
-- Cierra SIEMPRE con una moraleja clara y accionable sobre cómo aprovechar la IA en el día a día.
+- Que enganche a cualquiera: empieza con un gancho fuerte y específico que genere curiosidad y dé ganas de seguir.
+- Storytelling de principio a fin: cuenta la historia con detalles concretos, genera tensión, suelta algún comentario
+  con ironía, y deja que la enseñanza EMERJA de la historia (no la anuncies con "la lección es...").
+- Cierra con una moraleja que se sienta inevitable y reveladora, ligada a esta historia y a la IA.
 - ${HONESTIDAD}
 - Markdown limpio: subtítulos con ## y, si suma, alguna cita con >. Cierra con un bloque "## La moraleja".
 - ${LEN}
@@ -83,11 +112,11 @@ function historiasUserPrompt({ source, topic }) {
   if (topic) {
     return `El usuario quiere un reel/artículo sobre este tema: "${topic}".
 
-Paso 1 — Tómalo como una historia cotidiana que engancha y analiza qué la hace curiosa o impactante.
-Paso 2 — Analiza qué la haría viral y aplica storytelling de principio a fin, con tu chispa y sarcasmo ligero.
-Paso 3 — Escribe el artículo final y cierra con una moraleja que conecte la historia con cómo usar la
-         inteligencia artificial para ser más productivo. La conexión debe sentirse natural, no forzada.
-Recuerda: contenido real y verificable, nada inventado. Respeta el largo indicado. Español peruano (tuteo, "tú").`
+Paso 1 — Cuéntalo como una historia con detalles concretos; identifica qué la hace curiosa o impactante.
+Paso 2 — Extrae el PRINCIPIO humano que la hace memorable (la decisión, el patrón, la tensión, el error).
+Paso 3 — Tiende UN puente específico desde ese principio hacia la IA: qué nos enseña ESTA historia sobre cómo
+         (o cómo no) usarla. Que la moraleja solo pueda existir gracias a esta historia. Nada de listas de apps.
+Recuerda: contenido real y verificable, nada inventado. Huye de los clichés. Respeta el largo. Español peruano (tuteo, "tú").`
   }
 
   return `Toma esta noticia REAL y cotidiana (NO técnica) y conviértela en un reel con moraleja.
@@ -99,11 +128,14 @@ RESUMEN / CONTENIDO REAL:
 ${source?.text || '(solo está el titular; básate en él y en conocimiento general verificable, sin inventar datos)'}
 """
 
-Paso 1 — Identifica el gancho emocional y por qué esta historia despierta curiosidad en cualquier persona.
-Paso 2 — Aplica viralidad y storytelling: cuéntala como una historia que atrape, con humor inteligente.
-Paso 3 — Cierra con una moraleja que conecte esta historia cotidiana con la inteligencia artificial y con
-         cómo aprovecharla para ser más productivo en el día a día.
-No inventes cifras ni citas que no estén en el material. Respeta el largo indicado. Español peruano (tuteo, "tú").`
+Paso 1 — Cuenta la historia con detalles concretos y sensoriales que atrapen; encuentra el gancho real (por qué
+         a cualquiera le importaría). Muestra, no expliques.
+Paso 2 — Extrae el PRINCIPIO humano que hace memorable esta historia en particular (una decisión, un patrón,
+         una tensión, un error, una verdad sobre cómo actuamos).
+Paso 3 — Tiende UN puente específico y no obvio desde ese principio hacia la inteligencia artificial: qué nos
+         enseña ESTA historia sobre cómo (o cómo NO) usar la IA. La conexión debe nacer de la historia, no al revés.
+         Si la moraleja serviría para cualquier otra noticia, reescríbela. Nada de listas de herramientas pegadas.
+No inventes cifras ni citas que no estén en el material. Huye de los clichés. Respeta el largo. Español peruano (tuteo, "tú").`
 }
 
 // ——— Base 2: Productividad & IA (herramientas, tips y trucos) ———
@@ -293,8 +325,9 @@ const BASES = [
   },
 ]
 
-// Inyecta la nota del límite de LinkedIn al final de cada prompt de sistema.
-const withLimit = (s) => `${s}\n\n${LINKEDIN_LIMIT_NOTE}`
+// Inyecta las tácticas de interacción/debate y la nota del límite de LinkedIn
+// al final de cada prompt de sistema (aplican a todas las secciones por igual).
+const withLimit = (s) => `${s}\n\n${ANTICLICHE}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 const SECTIONS = []
 for (const b of BASES) {
