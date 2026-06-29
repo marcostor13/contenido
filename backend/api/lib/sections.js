@@ -279,6 +279,76 @@ const ANALISIS_ANGLES = [
   'por qué la meritocracia es el cuento que nos contamos para no ver la desigualdad',
 ]
 
+// ─── Sección 5: HERRAMIENTAS DE IA ───────────────────────────────────────────
+// Guías prácticas con paso a paso, tips y herramientas reales de IA para
+// mejorar la productividad. Útil de verdad, no teoría vacía.
+
+const herramientasSystem = (LEN) => `Eres un experto en herramientas de inteligencia artificial y productividad
+que odia el contenido superficial. Cuando recomiendas algo, es porque funciona de verdad y tú lo has
+"usado" (en términos de conocimiento profundo del tema). Das guías concretas, no listas de buzzwords.
+
+TU TRABAJO:
+1. Presentar UNA herramienta o flujo de trabajo de IA potente y real (que exista y funcione hoy).
+2. Explicar para qué sirve de verdad y en qué situación concreta cambia la vida del usuario.
+3. Dar el PASO A PASO para implementarlo: acciones concretas, en orden, sin saltarse nada.
+4. Incluir tips, atajos o errores comunes que la mayoría no conoce.
+5. Ser honesto sobre limitaciones: qué no hace bien, cuándo no usarla.
+
+${DIALECTO}
+
+${TONO}
+
+Estructura en markdown OBLIGATORIA:
+## [nombre de la herramienta o flujo]
+Párrafo breve: qué es y por qué importa ahora mismo.
+
+## Para qué sirve (de verdad)
+Casos de uso concretos y reales. Nada de "potencia tu creatividad".
+
+## Cómo empezar: paso a paso
+Pasos numerados, claros y en orden. Cada paso = una acción específica.
+Incluye URLs, prompts de ejemplo o comandos si aplica.
+
+## Tips que la mayoría no conoce
+2-4 trucos o atajos que marcan la diferencia real.
+
+## Lo que NO hace bien
+Honesto sobre límites. Esto genera confianza y ahorra tiempo al lector.
+
+- ${HONESTIDAD} Las herramientas deben existir y funcionar como describes.
+- ${LEN}
+
+${JSON_SPEC}`
+
+function herramientasUserPrompt({ topic, angle }) {
+  const eje = topic || angle
+  return `Escribe una guía práctica sobre: "${eje}".
+
+Paso 1 — Identifica la herramienta o flujo de trabajo específico (que exista y funcione hoy).
+Paso 2 — Explica el caso de uso concreto: quién lo necesita, cuándo lo usa, qué problema resuelve.
+Paso 3 — Da el paso a paso completo para implementarlo, con tips reales y limitaciones honestas.
+Útil de verdad, no teoría. Incluye ejemplos concretos (prompts, configuraciones, flujos). ${HONESTIDAD}`
+}
+
+const HERRAMIENTAS_ANGLES = [
+  'cómo usar Claude o ChatGPT para escribir y editar contenido 10 veces más rápido',
+  'automatizar reportes y análisis de datos con IA sin saber programar',
+  'cómo crear un asistente de IA personalizado para tu trabajo específico',
+  'Perplexity AI como reemplazo de Google para investigación profunda',
+  'cómo usar Cursor o GitHub Copilot para programar con IA aunque seas principiante',
+  'flujo de trabajo con Notion AI para gestionar proyectos sin reuniones innecesarias',
+  'cómo generar imágenes profesionales con Midjourney o DALL-E para tu negocio',
+  'automatizar correos, tareas y recordatorios con Make o Zapier + IA',
+  'transcribir y resumir reuniones automáticamente con Otter.ai o Fathom',
+  'cómo usar IA para investigar competidores y tendencias de mercado en minutos',
+  'crear presentaciones completas con IA usando Gamma o Beautiful.ai',
+  'cómo construir un flujo de creación de contenido semanal casi 100% automatizado',
+  'usar IA para aprender cualquier habilidad nueva en la mitad del tiempo',
+  'cómo hacer análisis de datos con ChatGPT Code Interpreter sin ser analista',
+  'Eleven Labs y Suno: crear voces y música con IA para contenido sin royalties',
+  'cómo auditar y mejorar tu SEO con herramientas de IA gratuitas',
+]
+
 const REFLEXION_ANGLES = [
   'estás construyendo la vida que quieres o la que te dijeron que debías querer',
   'la trampa de optimizar cada minuto de tu vida sin saber para qué',
@@ -325,6 +395,12 @@ const BASES = [
     system: analisisSystem, buildUserPrompt: analisisUserPrompt,
     long:  { name: 'Análisis',          category: 'Análisis' },
     short: { name: 'Análisis Express',  category: 'Análisis Express' },
+  },
+  {
+    key: 'herramientas', type: 'topic', angles: HERRAMIENTAS_ANGLES,
+    system: herramientasSystem, buildUserPrompt: herramientasUserPrompt,
+    long:  { name: 'Herramientas de IA',         category: 'Herramientas de IA' },
+    short: { name: 'Herramientas Express',        category: 'Herramientas Express' },
   },
 ]
 
