@@ -2,25 +2,15 @@
   command = "npm ci && npm run build"
   publish = "dist"
 
-[functions]
-  directory = "api"
-  node_bundler = "esbuild"
-
-# Cron base: corre cada minuto. El on/off y la frecuencia real (cada cuántos minutos
-# genera) se controlan desde el administrador y se guardan en la base de datos.
-# La función solo genera si está activada y si pasó el intervalo configurado; el resto
-# de corridas salen de inmediato. Este cron base define la resolución mínima (1 minuto).
-[functions."autogen"]
-  schedule = "* * * * *"
-
 [dev]
   command = "npm run dev"
   targetPort = 4321
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "https://apiclients.marcostorresalarcon.com/api/:splat"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/article/*"

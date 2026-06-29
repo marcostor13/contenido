@@ -1,0 +1,14 @@
+{
+  "name": "contenido-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "mongodb": "^6.8.0",
+    "node-cron": "^3.0.3"
+  }
+}
