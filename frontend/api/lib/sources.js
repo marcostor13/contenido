@@ -28,7 +28,14 @@ const pick = (block, tag) => {
 
 // Parsea un feed RSS y devuelve los items con título, link, descripción y fuente.
 async function fetchFeed(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; contenido-autogen/1.0)' } })
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 8000)
+  let res
+  try {
+    res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; contenido-autogen/1.0)' }, signal: ctrl.signal })
+  } finally {
+    clearTimeout(timer)
+  }
   if (!res.ok) throw new Error(`Fuente no disponible (${res.status})`)
   const xml = await res.text()
   const items = []
@@ -53,10 +60,13 @@ async function fetchFeed(url) {
 // Extrae texto plano legible de una página web (mejor esfuerzo, sin deps).
 async function fetchArticleText(url, maxChars = 6000) {
   if (!url) return ''
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 8000)
   try {
     const res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; contenido-autogen/1.0)' },
       redirect: 'follow',
+      signal: ctrl.signal,
     })
     if (!res.ok) return ''
     const ctype = res.headers.get('content-type') || ''
@@ -72,6 +82,8 @@ async function fetchArticleText(url, maxChars = 6000) {
     return text.slice(0, maxChars)
   } catch {
     return ''
+  } finally {
+    clearTimeout(timer)
   }
 }
 

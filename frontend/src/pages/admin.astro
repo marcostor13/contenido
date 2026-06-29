@@ -357,7 +357,8 @@ import Base from '../layouts/Base.astro'
     settingsInfo.innerHTML =
       `Motores conectados: <b>${prov}</b><br>Frecuencia: cada <b>${freqTxt}</b> · ${modo}<br>Última generación automática: ${last}` +
       (pb ? `<br>🧠 Aprendizaje: ${pb.runs || 0} ciclos · actualizado ${pb.updatedAt ? new Date(pb.updatedAt).toLocaleString('es') : '-'}` : '') +
-      (settings.lastError ? `<br><span style="color:#f85149">Último error: ${settings.lastError}</span>` : '')
+      (settings.lastError ? `<br><span style="color:#f85149">Último error: ${settings.lastError}</span>` : '') +
+      (settings.lastLearnError ? `<br><span style="color:#f85149">Error de aprendizaje: ${settings.lastLearnError}</span>` : '')
   }
 
   document.getElementById('save-settings-btn')!.addEventListener('click', async () => {

@@ -1,13 +1,14 @@
-// Scheduled Function de Netlify: se ejecuta cada hora (ver schedule en netlify.toml).
-// En cada corrida revisa la configuración: solo genera si está activado y si pasó
-// el intervalo de horas seteado en el administrador. Así la frecuencia es
-// configurable desde la plataforma aunque el cron base corra cada hora.
+// Scheduled Function de Netlify: corre cada minuto (ver schedule en netlify.toml).
+// Para no exceder el límite de tiempo de las funciones, cada corrida hace UN solo
+// paso pesado (aprendizaje o una sección). Solo genera si está activado y si pasó la
+// frecuencia configurada en el administrador. La frecuencia es configurable desde la
+// plataforma aunque el cron base corra cada minuto.
 const { runAutogen } = require('./lib/generator')
 
 exports.handler = async () => {
   try {
     const result = await runAutogen()
-    console.log('[autogen]', JSON.stringify(result?.skipped ? result : { ok: true, slug: result?.article?.slug }))
+    console.log('[autogen]', JSON.stringify(result))
     return { statusCode: 200, body: 'ok' }
   } catch (e) {
     console.error('[autogen] error:', e.message)
