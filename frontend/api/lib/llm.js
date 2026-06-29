@@ -37,7 +37,8 @@ function pickProvider(preference, rr = 0) {
 }
 
 // Llama al LLM y devuelve el texto de la respuesta.
-async function chat(provider, messages, { json = false, temperature = 0.8, maxTokens = 2500 } = {}) {
+// timeoutMs: corta la petición si el proveedor no responde, para no colgar la función.
+async function chat(provider, messages, { json = false, temperature = 0.8, maxTokens = 2500, timeoutMs = 60000 } = {}) {
   const body = {
     model: provider.model(),
     messages,
@@ -46,14 +47,25 @@ async function chat(provider, messages, { json = false, temperature = 0.8, maxTo
   }
   if (json) body.response_format = { type: 'json_object' }
 
-  const res = await fetch(provider.url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.key()}`,
-    },
-    body: JSON.stringify(body),
-  })
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs)
+  let res
+  try {
+    res = await fetch(provider.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.key()}`,
+      },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    })
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error(`Tiempo de espera agotado con ${provider.name} (${timeoutMs}ms)`)
+    throw new Error(`Fallo de red con ${provider.name}: ${e.message}`)
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
