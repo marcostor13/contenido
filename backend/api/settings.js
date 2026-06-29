@@ -3,11 +3,11 @@
 // POST -> actualiza enabled / frequencyMinutes / provider / category (admin).
 const { getSettings, saveSettings } = require('./lib/db')
 const { availableProviders, PROVIDERS } = require('./lib/llm')
+const { authed } = require('./lib/auth')
 
 const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
 const ok = (data, status = 200) => ({ statusCode: status, headers, body: JSON.stringify(data) })
 const err = (msg, status = 400) => ({ statusCode: status, headers, body: JSON.stringify({ error: msg }) })
-const authed = (event) => (event.headers?.['x-admin-password'] ?? '') === process.env.ADMIN_PASSWORD
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {

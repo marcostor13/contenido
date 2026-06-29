@@ -9,13 +9,17 @@ import Base from '../layouts/Base.astro'
         <input id="pwd-input" type="password" class="input" placeholder="Contraseña" />
       </div>
       <button id="login-btn" class="btn" style="width:100%">Entrar</button>
+      <p id="login-error" style="color:#f85149;font-size:.85rem;margin-top:.5rem;display:none">Contraseña incorrecta</p>
     </div>
   </div>
 
   <div id="admin-view" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
       <a href="/" class="back" style="margin:0">← volver</a>
-      <span id="article-count" class="date"></span>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span id="article-count" class="date"></span>
+        <button id="logout-btn" class="btn danger" style="padding:.35rem .7rem;font-size:.78rem">Salir</button>
+      </div>
     </div>
 
     <div class="tabs">
@@ -98,16 +102,16 @@ import Base from '../layouts/Base.astro'
 
       <hr class="divider" style="margin:2rem 0" />
 
-      <!-- Disparo manual del flujo completo (todas las secciones) -->
+      <!-- Disparo manual del flujo completo -->
       <h3 style="margin:0 0 .25rem">Generar todas las secciones ahora</h3>
-      <div class="hint">Ejecuta el flujo automático una vez y publica una pieza por cada sección (versiones largas y cortas de Historias, Productividad y Potencial, más Motivación). Con la rotación activada, genera solo la sección que toca.</div>
+      <div class="hint">Ejecuta el flujo automático una vez y publica una pieza por cada sección.</div>
       <button id="gen-cron-btn" class="btn" style="background:#1f6feb">Generar todas las secciones ahora</button>
 
       <hr class="divider" style="margin:2rem 0" />
 
       <!-- Configuración del cron -->
       <h3 style="margin:0 0 .25rem">Automatización (cron)</h3>
-      <div class="hint">El sistema corre cada minuto y genera solo cuando pasó el intervalo que definas (en minutos). Acá controlás si genera, cada cuántos minutos y con qué motor.</div>
+      <div class="hint">El sistema corre cada minuto y genera solo cuando pasó el intervalo que definas (en minutos).</div>
 
       <div style="display:flex;align-items:center;gap:.5rem;margin:.75rem 0 .5rem">
         <input id="s-enabled" type="checkbox" style="accent-color:var(--accent);width:16px;height:16px" />
@@ -144,25 +148,80 @@ import Base from '../layouts/Base.astro'
 </Base>
 
 <script>
-  let pwd = ''
-  const headers = () => ({ 'x-admin-password': pwd, 'Content-Type': 'application/json' })
+  // ——— Auth con JWT ———
+  const TOKEN_KEY = 'admin_jwt'
 
-  // — Auth —
+  let token = localStorage.getItem(TOKEN_KEY) || ''
+  const authHeaders = () => ({
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json',
+  })
+
+  function showLogin() {
+    document.getElementById('admin-view')!.style.display = 'none'
+    document.getElementById('login-view')!.style.display = 'flex'
+  }
+
+  function showAdmin() {
+    document.getElementById('login-view')!.style.display = 'none'
+    document.getElementById('admin-view')!.style.display = 'block'
+    loadList()
+  }
+
+  // Si ya hay token guardado, verificarlo contra el servidor.
+  if (token) {
+    fetch('/api/settings', { headers: authHeaders() }).then(res => {
+      if (res.ok) showAdmin()
+      else { localStorage.removeItem(TOKEN_KEY); token = '' }
+    }).catch(() => {})
+  }
+
+  // — Login —
+  async function login() {
+    const errEl = document.getElementById('login-error')!
+    errEl.style.display = 'none'
+    const pwd = (document.getElementById('pwd-input') as HTMLInputElement).value
+    if (!pwd) return
+
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      token = data.token
+      localStorage.setItem(TOKEN_KEY, token)
+      ;(document.getElementById('pwd-input') as HTMLInputElement).value = ''
+      showAdmin()
+    } else {
+      errEl.style.display = 'block'
+    }
+  }
+
   document.getElementById('login-btn')!.addEventListener('click', login)
   document.getElementById('pwd-input')!.addEventListener('keydown', (e) => {
     if ((e as KeyboardEvent).key === 'Enter') login()
   })
 
-  async function login() {
-    pwd = (document.getElementById('pwd-input') as HTMLInputElement).value
-    const res = await fetch('/api/content', { headers: { 'x-admin-password': pwd } })
-    if (res.ok) {
-      document.getElementById('login-view')!.style.display = 'none'
-      document.getElementById('admin-view')!.style.display = 'block'
-      loadList()
-    } else {
-      alert('Contraseña incorrecta')
+  // — Logout —
+  document.getElementById('logout-btn')!.addEventListener('click', () => {
+    localStorage.removeItem(TOKEN_KEY)
+    token = ''
+    showLogin()
+  })
+
+  // — Manejo de 401: token expirado o inválido → volver al login —
+  async function apiFetch(url: string, opts: RequestInit = {}) {
+    const res = await fetch(url, opts)
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY)
+      token = ''
+      showLogin()
+      throw new Error('Sesión expirada. Volvé a ingresar.')
     }
+    return res
   }
 
   // — Tabs —
@@ -206,13 +265,13 @@ import Base from '../layouts/Base.astro'
       btn.addEventListener('click', async () => {
         if (!confirm('¿Eliminar este artículo?')) return
         const id = (btn as HTMLElement).dataset.id!
-        await fetch(`/api/content?id=${id}`, { method: 'DELETE', headers: { 'x-admin-password': pwd } })
+        await apiFetch(`/api/content?id=${id}`, { method: 'DELETE', headers: authHeaders() })
         loadList()
       })
     })
   }
 
-  // — Save —
+  // — Guardar artículo —
   const titleEl = document.getElementById('f-title') as HTMLInputElement
   const slugEl = document.getElementById('f-slug') as HTMLInputElement
 
@@ -241,26 +300,32 @@ import Base from '../layouts/Base.astro'
       title, slug, content,
       excerpt: (document.getElementById('f-excerpt') as HTMLInputElement).value.trim(),
       category: (document.getElementById('f-category') as HTMLInputElement).value.trim() || 'General',
-      tags: (document.getElementById('f-tags') as HTMLInputElement).value.split(',').map(t => t.trim()).filter(Boolean),
+      tags: (document.getElementById('f-tags') as HTMLInputElement).value.split(',').map((t: string) => t.trim()).filter(Boolean),
       published: (document.getElementById('f-published') as HTMLInputElement).checked,
     }
 
-    const res = await fetch('/api/content', { method: 'POST', headers: headers(), body: JSON.stringify(body) })
-    if (res.ok) {
-      btn.textContent = '¡Guardado!'
-      btn.classList.add('success')
-      ;['f-title','f-slug','f-content','f-excerpt','f-category','f-tags'].forEach(id => {
-        (document.getElementById(id) as HTMLInputElement).value = ''
-      })
-      slugEl.removeAttribute('data-manual')
-      loadList()
-      setTimeout(() => {
-        btn.textContent = 'Guardar artículo'
-        btn.classList.remove('success')
+    try {
+      const res = await apiFetch('/api/content', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) })
+      if (res.ok) {
+        btn.textContent = '¡Guardado!'
+        btn.classList.add('success')
+        ;['f-title','f-slug','f-content','f-excerpt','f-category','f-tags'].forEach(id => {
+          (document.getElementById(id) as HTMLInputElement).value = ''
+        })
+        slugEl.removeAttribute('data-manual')
+        loadList()
+        setTimeout(() => {
+          btn.textContent = 'Guardar artículo'
+          btn.classList.remove('success')
+          btn.disabled = false
+        }, 2000)
+      } else {
+        alert('Error al guardar')
         btn.disabled = false
-      }, 2000)
-    } else {
-      alert('Error al guardar')
+        btn.textContent = 'Guardar artículo'
+      }
+    } catch (e: any) {
+      alert(e.message)
       btn.disabled = false
       btn.textContent = 'Guardar artículo'
     }
@@ -269,7 +334,6 @@ import Base from '../layouts/Base.astro'
   // ——— Generar con IA ———
   const genStatus = document.getElementById('gen-status')!
 
-  // Generar a partir de un tema escrito.
   document.getElementById('gen-topic-btn')!.addEventListener('click', async () => {
     const btn = document.getElementById('gen-topic-btn') as HTMLButtonElement
     const topic = (document.getElementById('g-topic') as HTMLInputElement).value.trim()
@@ -277,10 +341,10 @@ import Base from '../layouts/Base.astro'
     const section = (document.getElementById('g-section') as HTMLSelectElement).value
     if (!topic) { alert('Escribí un tema'); return }
     btn.disabled = true; btn.textContent = 'Generando...'
-    genStatus.textContent = 'Analizando tema, conectando con IA y redactando... (puede tardar unos segundos)'
+    genStatus.textContent = 'Analizando tema, conectando con IA y redactando...'
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST', headers: headers(),
+      const res = await apiFetch('/api/generate', {
+        method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ topic, section, category: category || undefined }),
       })
       const data = await res.json()
@@ -297,14 +361,13 @@ import Base from '../layouts/Base.astro'
     btn.disabled = false; btn.textContent = 'Generar artículo'
   })
 
-  // Disparar el flujo de noticias manualmente.
   document.getElementById('gen-cron-btn')!.addEventListener('click', async () => {
     const btn = document.getElementById('gen-cron-btn') as HTMLButtonElement
     btn.disabled = true; btn.textContent = 'Generando...'
     genStatus.textContent = 'Generando una pieza por cada sección (puede tardar un poco)...'
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST', headers: headers(), body: JSON.stringify({ runCron: true }),
+      const res = await apiFetch('/api/generate', {
+        method: 'POST', headers: authHeaders(), body: JSON.stringify({ runCron: true }),
       })
       const data = await res.json()
       if (res.ok && Array.isArray(data.results)) {
@@ -334,7 +397,7 @@ import Base from '../layouts/Base.astro'
   async function loadSettings() {
     if (settingsLoaded) return
     try {
-      const res = await fetch('/api/settings', { headers: headers() })
+      const res = await apiFetch('/api/settings', { headers: authHeaders() })
       if (!res.ok) { settingsInfo.textContent = 'No se pudo cargar la configuración'; return }
       const { settings, providers } = await res.json()
       ;(document.getElementById('s-enabled') as HTMLInputElement).checked = !!settings.enabled
@@ -374,9 +437,10 @@ import Base from '../layouts/Base.astro'
       category: (document.getElementById('s-category') as HTMLInputElement).value.trim() || 'Tecnología',
     }
     try {
-      const res = await fetch('/api/settings', { method: 'POST', headers: headers(), body: JSON.stringify(body) })
+      const res = await apiFetch('/api/settings', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) })
       const data = await res.json()
       if (res.ok) {
+        settingsLoaded = false
         btn.textContent = '¡Guardado!'; btn.classList.add('success')
         setTimeout(() => { btn.textContent = 'Guardar configuración'; btn.classList.remove('success'); btn.disabled = false }, 1500)
       } else {

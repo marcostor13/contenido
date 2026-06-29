@@ -5,6 +5,7 @@ const content = require('./api/content')
 const generate = require('./api/generate')
 const settings = require('./api/settings')
 const autogen = require('./api/autogen')
+const auth = require('./api/auth')
 
 const app = express()
 app.use(express.json())
@@ -33,6 +34,7 @@ function netlify(handler) {
   }
 }
 
+app.all('/api/auth/login', netlify(auth.handler))
 app.all('/api/content', netlify(content.handler))
 app.all('/api/generate', netlify(generate.handler))
 app.all('/api/settings', netlify(settings.handler))

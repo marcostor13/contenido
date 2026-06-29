@@ -1,5 +1,6 @@
 const { MongoClient, ObjectId } = require('mongodb')
 const dns = require('dns')
+const { authed } = require('./lib/auth')
 
 dns.setServers(['8.8.8.8', '1.1.1.1'])
 
@@ -30,8 +31,6 @@ const err = (msg, status = 400) => ({
   body: JSON.stringify({ error: msg }),
 })
 
-const authed = (event) =>
-  (event.headers?.['x-admin-password'] ?? '') === process.env.ADMIN_PASSWORD
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
