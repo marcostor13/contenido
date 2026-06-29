@@ -58,7 +58,7 @@ genera para entrar en ese tope **ya formateado** (título en negrita + cuerpo + 
 1. **Buscar (paso 1).** Se toma una noticia/herramienta REAL y trending desde la API
    pública de Hacker News (front page + búsquedas de productividad / herramientas / IA).
    Se evitan repeticiones usando las fuentes ya procesadas.
-2. **Analizar (paso 2).** Con OpenAI o DeepSeek se analiza el material y se le encuentra
+2. **Analizar (paso 2).** Con el gateway de IA (OpenAI, DeepSeek, Groq o Gemini, con balanceo y failover) se analiza el material y se le encuentra
    una relación genuina con la tecnología actual y la IA.
 3. **Generar y guardar (paso 3).** Se analiza viralidad y storytelling, se redacta el
    artículo (tono amical, sin jerga, no técnico) y se guarda en `content.articles` con la
@@ -98,13 +98,19 @@ Si están configuradas ambas keys y el motor está en `auto`, las cargas se repa
 |----------|-----------|-------------|
 | `MONGODB_URI` | sí | Conexión a MongoDB (ya existente). |
 | `ADMIN_PASSWORD` | sí | Contraseña del administrador (ya existente). |
-| `OPENAI_API_KEY` | una de las dos | API key de OpenAI. |
-| `DEEPSEEK_API_KEY` | una de las dos | API key de DeepSeek. |
+| `OPENAI_API_KEY` | al menos una | API key de OpenAI (de pago). |
+| `DEEPSEEK_API_KEY` | al menos una | API key de DeepSeek (de pago, económico). |
+| `GROQ_API_KEY` | al menos una | API key de Groq — **plan gratuito**. |
+| `GEMINI_API_KEY` | al menos una | API key de Google Gemini — **plan gratuito** (también acepta `GOOGLE_API_KEY`). |
 | `OPENAI_MODEL` | no | Modelo OpenAI (default `gpt-4o-mini`). |
 | `DEEPSEEK_MODEL` | no | Modelo DeepSeek (default `deepseek-chat`). |
+| `GROQ_MODEL` | no | Modelo Groq (default `llama-3.3-70b-versatile`). |
+| `GEMINI_MODEL` | no | Modelo Gemini (default `gemini-2.0-flash`). |
 
-> Configurá al menos una de `OPENAI_API_KEY` o `DEEPSEEK_API_KEY` en Netlify.
-> Si ponés las dos, el sistema reparte la carga entre ambas cuentas.
+> Configurá **al menos una** de las keys de IA en Netlify. Si ponés varias, el gateway
+> reparte la carga (round-robin) y hace **failover automático**: si un proveedor no
+> responde (saldo, clave, límite o timeout), reintenta con el siguiente.
+> Groq y Gemini son **gratuitos**, ideales como respaldo sin costo.
 
 ## Endpoints nuevos
 

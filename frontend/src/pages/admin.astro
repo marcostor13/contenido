@@ -125,9 +125,11 @@ import Base from '../layouts/Base.astro'
         <div class="field">
           <label class="label">Motor de IA</label>
           <select id="s-provider" class="input">
-            <option value="auto">Automático (reparte carga)</option>
+            <option value="auto">Automático (reparte carga + failover)</option>
             <option value="openai">OpenAI</option>
             <option value="deepseek">DeepSeek</option>
+            <option value="groq">Groq (gratis)</option>
+            <option value="gemini">Gemini (gratis)</option>
           </select>
         </div>
       </div>

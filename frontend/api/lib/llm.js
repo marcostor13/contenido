@@ -1,6 +1,15 @@
-// Capa de abstracción de LLM con soporte para OpenAI y DeepSeek.
-// Si están ambas keys configuradas, reparte la carga (balanceo round-robin).
-// Ambas APIs son compatibles con el formato de chat completions de OpenAI.
+// Gateway / capa de abstracción de LLM con varios proveedores: OpenAI, DeepSeek,
+// Groq y Gemini (todos vía endpoints compatibles con el formato chat completions
+// de OpenAI). Si hay varias keys configuradas, reparte la carga (round-robin) y,
+// si un proveedor no responde, hace failover automático al siguiente.
+//
+// Groq y Gemini tienen planes GRATUITOS, ideales como respaldo sin costo.
+// Keys (configurar las que tengas en Netlify):
+//   OPENAI_API_KEY, DEEPSEEK_API_KEY, GROQ_API_KEY, GEMINI_API_KEY (o GOOGLE_API_KEY)
+//
+// jsonMode: si el endpoint acepta response_format {type:'json_object'}. Para Gemini
+// lo dejamos en false (su capa de compatibilidad es más quisquillosa); el prompt ya
+// exige un JSON y el parser tolera texto alrededor.
 
 const PROVIDERS = {
   openai: {
@@ -8,12 +17,28 @@ const PROVIDERS = {
     url: 'https://api.openai.com/v1/chat/completions',
     key: () => process.env.OPENAI_API_KEY,
     model: () => process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    jsonMode: true,
   },
   deepseek: {
     name: 'deepseek',
     url: 'https://api.deepseek.com/chat/completions',
     key: () => process.env.DEEPSEEK_API_KEY,
     model: () => process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    jsonMode: true,
+  },
+  groq: {
+    name: 'groq',
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    key: () => process.env.GROQ_API_KEY,
+    model: () => process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    jsonMode: true,
+  },
+  gemini: {
+    name: 'gemini',
+    url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+    model: () => process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    jsonMode: false,
   },
 }
 
@@ -53,7 +78,7 @@ async function chat(provider, messages, { json = false, temperature = 0.8, maxTo
     temperature,
     max_tokens: maxTokens,
   }
-  if (json) body.response_format = { type: 'json_object' }
+  if (json && provider.jsonMode !== false) body.response_format = { type: 'json_object' }
 
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), timeoutMs)
