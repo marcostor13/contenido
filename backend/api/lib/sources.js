@@ -1,17 +1,16 @@
-// Obtención de noticias REALES, generales e impactantes (sin API key).
-// Usamos los feeds RSS de Google Noticias en español: traen lo más relevante y
-// curioso del día (no técnico), pensado para que cualquier persona se enganche.
-// Luego el pipeline les encuentra una moraleja conectada con la IA y la productividad.
+// Fuentes de noticias reales e importantes (sin API key).
+// Google Noticias RSS en español: top mundial + queries temáticas rotadas.
+// El criterio es IMPORTANCIA e IMPACTO, no rareza ni viralidad.
 
-// Feed principal: portada / lo más importante del día.
+// Portada mundial: lo más importante del momento.
 const GN_TOP = 'https://news.google.com/rss?hl=es-419&gl=US&ceid=US:es-419'
 
-// Búsquedas rotadas para sumar noticias curiosas / impactantes / humanas.
+// Queries rotadas por área de alto impacto.
 const GN_QUERIES = [
-  'https://news.google.com/rss/search?q=insólito%20OR%20increíble%20OR%20histórico&hl=es-419&gl=US&ceid=US:es-419',
-  'https://news.google.com/rss/search?q=récord%20OR%20sorprendente%20OR%20viral&hl=es-419&gl=US&ceid=US:es-419',
-  'https://news.google.com/rss/search?q=historia%20OR%20descubrimiento%20OR%20curiosidad&hl=es-419&gl=US&ceid=US:es-419',
-  'https://news.google.com/rss/search?q=ciencia%20OR%20naturaleza%20OR%20espacio&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=inteligencia+artificial+OR+tecnología+OR+innovación&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=economía+OR+mercados+OR+crisis+OR+inflación+OR+dinero&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=ciencia+OR+salud+OR+clima+OR+medio+ambiente&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=geopolítica+OR+conflicto+OR+sociedad+OR+derechos&hl=es-419&gl=US&ceid=US:es-419',
 ]
 
 const decode = (s = '') =>
@@ -26,7 +25,6 @@ const pick = (block, tag) => {
   return m ? decode(m[1]) : ''
 }
 
-// Parsea un feed RSS y devuelve los items con título, link, descripción y fuente.
 async function fetchFeed(url) {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), 8000)
@@ -57,7 +55,6 @@ async function fetchFeed(url) {
   return items
 }
 
-// Extrae texto plano legible de una página web (mejor esfuerzo, sin deps).
 async function fetchArticleText(url, maxChars = 6000) {
   if (!url) return ''
   const ctrl = new AbortController()
@@ -87,15 +84,11 @@ async function fetchArticleText(url, maxChars = 6000) {
   }
 }
 
-// Devuelve una noticia { key, title, url, summary, source } real y todavía no usada.
-// `usedKeys` es un Set con identificadores ya procesados, para no repetir.
 async function pickFreshStory(usedKeys = new Set()) {
   const pool = []
 
-  // Portada del día (lo más relevante / impactante).
   try { pool.push(...(await fetchFeed(GN_TOP))) } catch {}
 
-  // Una búsqueda rotada de noticias curiosas / humanas.
   const q = GN_QUERIES[Math.floor(Math.random() * GN_QUERIES.length)]
   try { pool.push(...(await fetchFeed(q))) } catch {}
 
@@ -103,7 +96,6 @@ async function pickFreshStory(usedKeys = new Set()) {
     .filter(h => h && h.title)
     .filter(h => !usedKeys.has(`gn:${h.guid}`) && !usedKeys.has(h.link))
 
-  // Mezclar para variar el tema en cada corrida.
   for (let i = candidates.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[candidates[i], candidates[j]] = [candidates[j], candidates[i]]
