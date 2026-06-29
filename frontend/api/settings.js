@@ -2,7 +2,7 @@
 // GET  -> devuelve la configuración actual y los proveedores disponibles (admin).
 // POST -> actualiza enabled / frequencyMinutes / provider / category (admin).
 const { getSettings, saveSettings } = require('./lib/db')
-const { availableProviders } = require('./lib/llm')
+const { availableProviders, PROVIDERS } = require('./lib/llm')
 
 const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
 const ok = (data, status = 200) => ({ statusCode: status, headers, body: JSON.stringify(data) })
@@ -36,7 +36,8 @@ exports.handler = async (event) => {
     } else if (body.frequencyHours != null) {
       patch.frequencyMinutes = Math.max(MIN_FREQ, Math.min(MAX_FREQ, Math.round((Number(body.frequencyHours) || 1) * 60)))
     }
-    if (body.provider && ['auto', 'openai', 'deepseek'].includes(body.provider)) patch.provider = body.provider
+    const PROVIDER_OPTS = ['auto', ...Object.keys(PROVIDERS)]
+    if (body.provider && PROVIDER_OPTS.includes(body.provider)) patch.provider = body.provider
     if (typeof body.category === 'string' && body.category.trim()) patch.category = body.category.trim()
     if (!Object.keys(patch).length) return err('Nada para actualizar')
     const s = await saveSettings(patch)
