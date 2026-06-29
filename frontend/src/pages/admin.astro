@@ -149,6 +149,7 @@ import Base from '../layouts/Base.astro'
 
 <script>
   // ——— Auth con JWT ———
+  const API = import.meta.env.PUBLIC_API_URL || ''
   const TOKEN_KEY = 'admin_jwt'
 
   let token = localStorage.getItem(TOKEN_KEY) || ''
@@ -170,7 +171,7 @@ import Base from '../layouts/Base.astro'
 
   // Si ya hay token guardado, verificarlo contra el servidor.
   if (token) {
-    fetch('/api/settings', { headers: authHeaders() }).then(res => {
+    fetch(`${API}/api/settings`, { headers: authHeaders() }).then(res => {
       if (res.ok) showAdmin()
       else { localStorage.removeItem(TOKEN_KEY); token = '' }
     }).catch(() => {})
@@ -183,7 +184,7 @@ import Base from '../layouts/Base.astro'
     const pwd = (document.getElementById('pwd-input') as HTMLInputElement).value
     if (!pwd) return
 
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pwd }),
@@ -239,7 +240,7 @@ import Base from '../layouts/Base.astro'
 
   // — List —
   async function loadList() {
-    const res = await fetch('/api/content?limit=100')
+    const res = await fetch(`${API}/api/content?limit=100`)
     const data = await res.json()
     const items = data.items || []
     document.getElementById('article-count')!.textContent = `${items.length} artículos`
@@ -265,7 +266,7 @@ import Base from '../layouts/Base.astro'
       btn.addEventListener('click', async () => {
         if (!confirm('¿Eliminar este artículo?')) return
         const id = (btn as HTMLElement).dataset.id!
-        await apiFetch(`/api/content?id=${id}`, { method: 'DELETE', headers: authHeaders() })
+        await apiFetch(`${API}/api/content?id=${id}`, { method: 'DELETE', headers: authHeaders() })
         loadList()
       })
     })
@@ -305,7 +306,7 @@ import Base from '../layouts/Base.astro'
     }
 
     try {
-      const res = await apiFetch('/api/content', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) })
+      const res = await apiFetch(`${API}/api/content`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) })
       if (res.ok) {
         btn.textContent = '¡Guardado!'
         btn.classList.add('success')
@@ -343,7 +344,7 @@ import Base from '../layouts/Base.astro'
     btn.disabled = true; btn.textContent = 'Generando...'
     genStatus.textContent = 'Analizando tema, conectando con IA y redactando...'
     try {
-      const res = await apiFetch('/api/generate', {
+      const res = await apiFetch(`${API}/api/generate`, {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ topic, section, category: category || undefined }),
       })
@@ -366,7 +367,7 @@ import Base from '../layouts/Base.astro'
     btn.disabled = true; btn.textContent = 'Generando...'
     genStatus.textContent = 'Generando una pieza por cada sección (puede tardar un poco)...'
     try {
-      const res = await apiFetch('/api/generate', {
+      const res = await apiFetch(`${API}/api/generate`, {
         method: 'POST', headers: authHeaders(), body: JSON.stringify({ runCron: true }),
       })
       const data = await res.json()
@@ -397,7 +398,7 @@ import Base from '../layouts/Base.astro'
   async function loadSettings() {
     if (settingsLoaded) return
     try {
-      const res = await apiFetch('/api/settings', { headers: authHeaders() })
+      const res = await apiFetch(`${API}/api/settings`, { headers: authHeaders() })
       if (!res.ok) { settingsInfo.textContent = 'No se pudo cargar la configuración'; return }
       const { settings, providers } = await res.json()
       ;(document.getElementById('s-enabled') as HTMLInputElement).checked = !!settings.enabled
@@ -437,7 +438,7 @@ import Base from '../layouts/Base.astro'
       category: (document.getElementById('s-category') as HTMLInputElement).value.trim() || 'Tecnología',
     }
     try {
-      const res = await apiFetch('/api/settings', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) })
+      const res = await apiFetch(`${API}/api/settings`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) })
       const data = await res.json()
       if (res.ok) {
         settingsLoaded = false

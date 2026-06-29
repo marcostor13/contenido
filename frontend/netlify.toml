@@ -2,15 +2,12 @@
   command = "npm ci && npm run build"
   publish = "dist"
 
+[build.environment]
+  PUBLIC_API_URL = "https://apicontent.marcostorresalarcon.com"
+
 [dev]
   command = "npm run dev"
   targetPort = 4321
-
-[[redirects]]
-  from = "/api/*"
-  to = "https://apicontent.marcostorresalarcon.com/api/:splat"
-  status = 200
-  force = true
 
 [[redirects]]
   from = "/article/*"

@@ -31,13 +31,14 @@ import Base from '../../layouts/Base.astro'
 <script>
   import { marked } from 'marked'
 
+  const API = import.meta.env.PUBLIC_API_URL || ''
   const slug = window.location.pathname.replace(/^\/article\//, '').replace(/\/$/, '')
   let currentItem: any = null
 
   async function load() {
     if (!slug) { show('error'); return }
 
-    const res = await fetch(`/api/content?slug=${encodeURIComponent(slug)}`)
+    const res = await fetch(`${API}/api/content?slug=${encodeURIComponent(slug)}`)
     if (!res.ok) { show('error'); return }
     const item = await res.json()
     currentItem = item

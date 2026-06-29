@@ -10,6 +10,22 @@ const auth = require('./api/auth')
 const app = express()
 app.use(express.json())
 
+// CORS global: permite llamadas directas desde el frontend en cualquier origen.
+app.use((_req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*')
+  next()
+})
+
+// Preflight OPTIONS global: debe ir ANTES de las rutas para interceptar el
+// preflight que el navegador envía cuando hay un header Authorization.
+app.options('*', (_req, res) => {
+  res.set({
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Max-Age': '86400',
+  }).sendStatus(204)
+})
+
 // Convierte el formato de evento de Netlify Functions a Express y viceversa.
 // Los handlers existentes no se modifican: siguen recibiendo un "event" y devolviendo
 // { statusCode, headers, body }. Este adaptador hace la traducción en los dos sentidos.
