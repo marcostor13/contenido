@@ -36,6 +36,14 @@ function pickProvider(preference, rr = 0) {
   return available[rr % available.length]
 }
 
+// Devuelve los proveedores a probar EN ORDEN: primero el preferido (o el del
+// round-robin), y a continuación el resto como respaldo para el failover.
+function providersInOrder(preference, rr = 0) {
+  const first = pickProvider(preference, rr)
+  const rest = availableProviders().filter(p => p.name !== first.name)
+  return [first, ...rest]
+}
+
 // Llama al LLM y devuelve el texto de la respuesta.
 // timeoutMs: corta la petición si el proveedor no responde, para no colgar la función.
 async function chat(provider, messages, { json = false, temperature = 0.8, maxTokens = 2500, timeoutMs = 60000 } = {}) {
@@ -78,4 +86,22 @@ async function chat(provider, messages, { json = false, temperature = 0.8, maxTo
   return content
 }
 
-module.exports = { PROVIDERS, availableProviders, pickProvider, chat }
+// Llama al LLM con FAILOVER automático: intenta con el proveedor preferido y, si
+// falla (saldo insuficiente, clave inválida, límite, timeout, red…), reintenta con
+// los demás proveedores disponibles. Devuelve { content, provider } del que funcionó.
+// Si todos fallan, lanza un error con el detalle de cada intento.
+async function chatResilient(messages, { providerPref = 'auto', rr = 0, ...opts } = {}) {
+  const order = providersInOrder(providerPref, rr)
+  const errors = []
+  for (const provider of order) {
+    try {
+      const content = await chat(provider, messages, opts)
+      return { content, provider }
+    } catch (e) {
+      errors.push(`${provider.name}: ${e.message}`)
+    }
+  }
+  throw new Error(`Todos los proveedores fallaron — ${errors.join(' | ')}`)
+}
+
+module.exports = { PROVIDERS, availableProviders, pickProvider, providersInOrder, chat, chatResilient }
