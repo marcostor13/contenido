@@ -11,7 +11,7 @@
 // Ver `api/lib/sections.js` para el tono y la configuración de cada sección.
 
 const { articles, getSettings, saveSettings } = require('./db')
-const { pickProvider, chat } = require('./llm')
+const { chat, chatResilient } = require('./llm')
 const { pickFreshStory, fetchArticleText } = require('./sources')
 const { learnAndResearch, currentPlaybook } = require('./learn')
 const { SECTIONS, getSection, pickFreshAngle } = require('./sections')
@@ -88,7 +88,6 @@ async function generateArticle({
   providerPref = 'auto', rr = 0, category = null, sourceKey = null, playbook = '',
 }) {
   const sec = getSection(section)
-  const provider = pickProvider(providerPref, rr)
 
   const userPrompt = sec.buildUserPrompt({ source, topic, angle })
 
@@ -101,7 +100,8 @@ async function generateArticle({
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ]
-  const raw = await chat(provider, messages, { json: true, temperature: 0.85 })
+  // Con failover: si un proveedor falla (p. ej. saldo), usa el otro automáticamente.
+  const { content: raw, provider } = await chatResilient(messages, { providerPref, rr, json: true, temperature: 0.85 })
 
   let a = parseArticle(raw)
   if (!a.title || !a.content) throw new Error('El modelo no devolvió título o contenido válidos.')

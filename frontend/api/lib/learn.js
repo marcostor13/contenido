@@ -5,7 +5,7 @@
 //     el contenido mejore en cada ejecución.
 
 const { articles, learnings, getSettings, saveSettings } = require('./db')
-const { pickProvider, chat } = require('./llm')
+const { chatResilient } = require('./llm')
 const { BASE_STRATEGY } = require('./knowledge')
 
 const LEARN_SYSTEM = `Eres un estratega de contenido viral y storytelling para redes (reels, TikTok, shorts).
@@ -81,8 +81,8 @@ async function learnAndResearch({ providerPref = 'auto', rr = 0 } = {}) {
           .join('\n')
       : '(no hay aprendizajes previos)'
 
-    const provider = pickProvider(providerPref, rr)
-    const raw = await chat(provider, [
+    // Con failover: si un proveedor falla (p. ej. saldo), usa el otro automáticamente.
+    const { content: raw, provider } = await chatResilient([
       { role: 'system', content: LEARN_SYSTEM },
       { role: 'user', content:
 `ESTRATEGIA BASE (fundamento permanente, respétala siempre):
@@ -98,7 +98,7 @@ PLAYBOOK ANTERIOR:
 ${prev.text || '(no hay playbook previo)'}
 
 Aprende del historial, conserva el contexto previo, investiga técnicas de viralidad actuales y evoluciona el playbook.` },
-    ], { json: true, temperature: 0.6, maxTokens: 1000 })
+    ], { providerPref, rr, json: true, temperature: 0.6, maxTokens: 1000 })
 
     let parsed
     try {
@@ -135,6 +135,7 @@ Aprende del historial, conserva el contexto previo, investiga técnicas de viral
 
       // 2) Mantener el playbook actual en settings para inyección rápida.
       await saveSettings({
+        lastLearnError: null,
         playbook: {
           text,
           learnings: parsed.learnings || null,
