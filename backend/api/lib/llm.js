@@ -1,17 +1,67 @@
-// Gateway / capa de abstracción de LLM con varios proveedores: OpenAI, DeepSeek,
-// Groq y Gemini (todos vía endpoints compatibles con el formato chat completions
-// de OpenAI). Si hay varias keys configuradas, reparte la carga (round-robin) y,
-// si un proveedor no responde, hace failover automático al siguiente.
+// Gateway / capa de abstracción de LLM con failover automático.
 //
-// Groq y Gemini tienen planes GRATUITOS, ideales como respaldo sin costo.
-// Keys (configurar las que tengas en Netlify):
-//   OPENAI_API_KEY, DEEPSEEK_API_KEY, GROQ_API_KEY, GEMINI_API_KEY (o GOOGLE_API_KEY)
+// PROVEEDORES (en orden de failover cuando el primer slot falla):
+//   1. groq        — llama-3.3-70b-versatile  100 K TPD gratis
+//   2. groq_fast   — llama-3.1-8b-instant     pool propio (~500 K TPD), mismo key
+//   3. cerebras    — llama-3.3-70b            1 M TPD gratis, API OpenAI-compatible
+//   4. gemini      — gemini-2.5-flash         250 RPD / 250 K TPM gratis
+//   5. gemini_lite — gemini-2.5-flash-lite    1 000 RPD (4× más), mismo key
+//   6. openai      — gpt-4o-mini              pago, alta fiabilidad
+//   7. deepseek    — deepseek-chat            pago económico
 //
-// jsonMode: si el endpoint acepta response_format {type:'json_object'}. Para Gemini
-// lo dejamos en false (su capa de compatibilidad es más quisquillosa); el prompt ya
-// exige un JSON y el parser tolera texto alrededor.
+// CLAVE: modelos distintos dentro del mismo proveedor tienen pools de cuota separados.
+// Cuando llama-3.3-70b agota sus 100 K TPD, llama-3.1-8b-instant sigue disponible.
+// Mismo principio: gemini-2.5-flash (250 RPD) → gemini-2.5-flash-lite (1 000 RPD).
+//
+// Variables de entorno (definir las que tengas en Coolify):
+//   GROQ_API_KEY        → activa slots groq + groq_fast
+//   CEREBRAS_API_KEY    → activa slot cerebras (console.cerebras.ai)
+//   GEMINI_API_KEY      → activa slots gemini + gemini_lite (o GOOGLE_API_KEY)
+//   OPENAI_API_KEY      → activa slot openai
+//   DEEPSEEK_API_KEY    → activa slot deepseek
 
 const PROVIDERS = {
+  groq: {
+    name: 'groq',
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    key: () => process.env.GROQ_API_KEY,
+    model: () => process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    jsonMode: true,
+  },
+  // Mismo key que groq, modelo distinto → pool de cuota propio.
+  // Actúa como failover automático cuando llama-3.3-70b agota sus 100 K TPD diarios.
+  groq_fast: {
+    name: 'groq_fast',
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    key: () => process.env.GROQ_API_KEY,
+    model: () => 'llama-3.1-8b-instant',
+    jsonMode: true,
+  },
+  // Cerebras: 1 M TPD gratuito, latencia baja, API 100% compatible con OpenAI.
+  // Obtén tu key en: https://cloud.cerebras.ai
+  cerebras: {
+    name: 'cerebras',
+    url: 'https://api.cerebras.ai/v1/chat/completions',
+    key: () => process.env.CEREBRAS_API_KEY,
+    model: () => process.env.CEREBRAS_MODEL || 'llama-3.3-70b',
+    jsonMode: true,
+  },
+  // Gemini 2.5 Flash: mejor relación calidad/límite gratuito en 2026 (250 RPD, 250 K TPM).
+  gemini: {
+    name: 'gemini',
+    url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+    model: () => process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    jsonMode: false,
+  },
+  // Mismo key que gemini, modelo lite → 1 000 RPD (4× más que 2.5-flash).
+  gemini_lite: {
+    name: 'gemini_lite',
+    url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+    model: () => 'gemini-2.5-flash-lite',
+    jsonMode: false,
+  },
   openai: {
     name: 'openai',
     url: 'https://api.openai.com/v1/chat/completions',
@@ -26,20 +76,6 @@ const PROVIDERS = {
     model: () => process.env.DEEPSEEK_MODEL || 'deepseek-chat',
     jsonMode: true,
   },
-  groq: {
-    name: 'groq',
-    url: 'https://api.groq.com/openai/v1/chat/completions',
-    key: () => process.env.GROQ_API_KEY,
-    model: () => process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-    jsonMode: true,
-  },
-  gemini: {
-    name: 'gemini',
-    url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-    key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
-    model: () => process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-    jsonMode: false,
-  },
 }
 
 // Devuelve la lista de proveedores configurados (con key disponible).
@@ -48,12 +84,12 @@ function availableProviders() {
 }
 
 // Elige el proveedor a usar.
-//  - preference 'openai' | 'deepseek' fuerza uno (si tiene key).
+//  - preference 'groq' | 'openai' etc. fuerza uno (si tiene key).
 //  - 'auto' reparte la carga según el contador round-robin (rr).
 function pickProvider(preference, rr = 0) {
   const available = availableProviders()
   if (!available.length) {
-    throw new Error('No hay ningún proveedor de IA configurado. Definí OPENAI_API_KEY y/o DEEPSEEK_API_KEY.')
+    throw new Error('No hay ningún proveedor de IA configurado. Definí al menos GROQ_API_KEY o CEREBRAS_API_KEY.')
   }
   if (preference && preference !== 'auto' && PROVIDERS[preference]?.key()) {
     return PROVIDERS[preference]
@@ -70,7 +106,6 @@ function providersInOrder(preference, rr = 0) {
 }
 
 // Llama al LLM y devuelve el texto de la respuesta.
-// timeoutMs: corta la petición si el proveedor no responde, para no colgar la función.
 async function chat(provider, messages, { json = false, temperature = 0.8, maxTokens = 2500, timeoutMs = 60000 } = {}) {
   const body = {
     model: provider.model(),
