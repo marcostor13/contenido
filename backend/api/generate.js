@@ -37,6 +37,7 @@ exports.handler = async (event) => {
       providerPref: s.provider,
       rr: s._rr || 0,
       category: body.category || undefined,
+      reference: body.reference || null,
       playbook: await currentPlaybook(),
     })
     await saveSettings({ _rr: ((s._rr || 0) + 1) % 1000 })

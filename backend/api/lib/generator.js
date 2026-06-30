@@ -86,10 +86,16 @@ ${a.content}
 async function generateArticle({
   section = 'historias', source = null, topic = null, angle = null,
   providerPref = 'auto', rr = 0, category = null, sourceKey = null, playbook = '',
+  reference = null,
 }) {
   const sec = getSection(section)
 
-  const userPrompt = sec.buildUserPrompt({ source, topic, angle })
+  let userPrompt = sec.buildUserPrompt({ source, topic, angle })
+
+  // Contexto de referencia opcional (texto de TikTok, titulares virales, tendencias…).
+  if (reference && reference.trim()) {
+    userPrompt += `\n\n---\nCONTENIDO DE REFERENCIA (texto, tendencias o material que el usuario proporcionó):\n${reference.trim()}\n\nUsá este material como inspiración: extraé el tema, el tono, el ángulo o lo que está resonando, pero generá contenido 100% original con tu propia voz. No copies ni parafrasees el texto de referencia directamente.`
+  }
 
   // Inyectar el playbook aprendido (técnicas de viralidad y aprendizajes) si existe.
   const systemPrompt = playbook

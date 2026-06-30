@@ -101,6 +101,15 @@ import Base from '../layouts/Base.astro'
         <label class="label">Tema</label>
         <input id="g-topic" type="text" class="input" placeholder="Ej: cómo usar la IA para ahorrar tiempo escribiendo correos" />
       </div>
+      <div class="field">
+        <label class="label" style="display:flex;align-items:center;gap:.5rem">
+          Referencia / Tendencias
+          <span style="font-size:.75rem;color:var(--muted);font-weight:400">(opcional — pegá texto de TikTok, titulares, tendencias…)</span>
+        </label>
+        <textarea id="g-reference" class="input" rows="5"
+          placeholder="Pegá aquí cualquier contenido de referencia: texto de un video de TikTok, titulares virales, tendencias que viste, transcripciones, ideas… El sistema lo usará como inspiración para generar el artículo con el mismo ángulo o tema, pero con voz propia."
+          style="resize:vertical;font-size:.85rem;line-height:1.5"></textarea>
+      </div>
       <button id="gen-topic-btn" class="btn">Generar artículo</button>
       <div id="gen-status" class="hint" style="margin-top:.75rem"></div>
 
@@ -344,18 +353,22 @@ import Base from '../layouts/Base.astro'
     const topic = (document.getElementById('g-topic') as HTMLInputElement).value.trim()
     const category = (document.getElementById('g-category') as HTMLInputElement).value.trim()
     const section = (document.getElementById('g-section') as HTMLSelectElement).value
+    const reference = (document.getElementById('g-reference') as HTMLTextAreaElement).value.trim()
     if (!topic) { alert('Escribí un tema'); return }
     btn.disabled = true; btn.textContent = 'Generando...'
-    genStatus.textContent = 'Analizando tema, conectando con IA y redactando...'
+    genStatus.textContent = reference
+      ? 'Analizando tema y referencia, conectando con IA y redactando...'
+      : 'Analizando tema, conectando con IA y redactando...'
     try {
       const res = await apiFetch(`${API}/api/generate`, {
         method: 'POST', headers: authHeaders(),
-        body: JSON.stringify({ topic, section, category: category || undefined }),
+        body: JSON.stringify({ topic, section, category: category || undefined, reference: reference || undefined }),
       })
       const data = await res.json()
       if (res.ok && data.article) {
         genStatus.innerHTML = `✅ Generado con <b>${data.article.generatedBy}</b>: <a href="/article/${data.article.slug}" style="color:var(--accent)">${data.article.title}</a>`
         ;(document.getElementById('g-topic') as HTMLInputElement).value = ''
+        ;(document.getElementById('g-reference') as HTMLTextAreaElement).value = ''
         loadList()
       } else {
         genStatus.textContent = '❌ ' + (data.error || 'Error al generar')
