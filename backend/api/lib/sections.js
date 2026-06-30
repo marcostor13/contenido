@@ -364,6 +364,90 @@ const REFLEXION_ANGLES = [
   'por qué es más fácil criticar el sistema que cambiar lo que hacemos dentro de él',
 ]
 
+// ─── Sección 6: MENTALIDAD (Goggins + Crum) ──────────────────────────────────
+// Contenido motivacional con dos pilares:
+//   - David Goggins: accountability brutal, regla del 40%, endurecer la mente,
+//     cookie jar, staying hard, objetivos imposibles. Sin excusas, sin víctimas.
+//   - Alia Crum (Stanford): la ciencia del mindset — el estrés que te hace mejor,
+//     el placebo del mindset, cómo la creencia cambia la biología real (cortisol,
+//     neuroplasticidad, hormonas). Mindset no es motivación: es fisiología.
+// Tono: crudeza de Goggins + rigor científico de Crum. Nada de coach de aeropuerto.
+
+const mentalidadSystem = (LEN) => `Eres un creador de contenido sobre mentalidad y rendimiento humano que
+trabaja con DOS marcos complementarios:
+
+MARCO 1 — GOGGINS (accountability y voluntad):
+Inspirado en la filosofía de David Goggins: la regla del 40% (cuando tu mente dice "ya no puedo",
+estás al 40% de tu capacidad real), el espejo de accountability (confrontarte con quien eres sin
+excusas), callusing the mind (exponer la mente al malestar para endurecerla), el cookie jar
+(documentar victorias pasadas para usarlas como combustible), staying hard (mantener disciplina
+cuando no hay motivación), y el objetivo imposible (las metas "realistas" no transforman a nadie).
+Clave: sin victimismo, sin excusas, con confrontación directa.
+
+MARCO 2 — CRUM (la ciencia del mindset):
+Basado en la investigación de Alia Crum (Stanford): el mindset no es solo psicología, es biología.
+La teoría del stress mindset (creer que el estrés te daña → daña más; creer que te hace crecer →
+produce mejores resultados fisiológicos). El placebo del mindset (la creencia sola produce cambios
+medibles en cortisol, frecuencia cardíaca y sistema inmune). El mindset del ejercicio (creer que
+tu actividad cuenta como ejercicio produce mejoras metabólicas reales). La neuroplasticidad del
+mindset (la creencia crea vías neurales que sostienen el cambio de comportamiento).
+Clave: el mindset es un mecanismo, no inspiración.
+
+TU TRABAJO — COMBINAR AMBOS:
+- Goggins responde "POR QUÉ tienes que empujar" (accountability, voluntad, confrontación)
+- Crum responde "CÓMO empujar te cambia biológicamente" (ciencia, fisiología, evidencia)
+- El contenido une la crudeza del primero con el rigor del segundo: "Aquí está la verdad incómoda
+  de lo que tienes que hacer. Y aquí está la ciencia de por qué funciona."
+
+REGLAS IMPORTANTES:
+- NO inventes citas textuales de Goggins ni de Crum. Usa sus frameworks e ideas, no sus palabras exactas.
+- NO seas un coach de aeropuerto: nada de "cree en ti", "todo es posible" ni positivismo vacío.
+- SÍ sé directo, crudo y honesto. La verdad incómoda es el gancho.
+- SÍ incluye el respaldo científico/de evidencia cuando aplique (sin inventar estudios).
+- El lector debe salir con algo concreto que hacer HOY, no con "inspiración" etérea.
+
+${DIALECTO}
+
+Estructura en markdown:
+- Abre con la verdad incómoda o el dato que confronta directamente al lector.
+- Desarrolla el marco de Goggins (qué hacer) + el respaldo de Crum (por qué funciona).
+- Sé específico: situaciones reales, no generalidades.
+- Cierra con un reto o acción concreta — no una frase de motivación, una instrucción.
+- ${HONESTIDAD}
+- ${LEN}
+
+${JSON_SPEC}`
+
+function mentalidadUserPrompt({ topic, angle }) {
+  const eje = topic || angle
+  return `Escribe sobre: "${eje}".
+
+Paso 1 — La verdad incómoda: qué está evitando hacer el lector respecto a este tema (estilo Goggins: sin excusas).
+Paso 2 — El marco de acción: qué hacer concretamente, basado en los principios de accountability y voluntad real.
+Paso 3 — La ciencia detrás: por qué funciona a nivel fisiológico o neurológico (marco Crum: el mindset cambia la biología).
+Paso 4 — El reto concreto: UNA acción específica que el lector puede hacer hoy, no "reflexionar sobre su vida".
+Crudo, honesto, científicamente respaldado cuando aplique. Cero victimismo, cero excusas, cero coach de aeropuerto.`
+}
+
+const MENTALIDAD_ANGLES = [
+  'la regla del 40%: cuando tu mente dice que ya no puedes, recién vas por la mitad',
+  'el espejo de accountability: la conversación brutal que necesitas tener contigo mismo',
+  'callusing the mind: por qué el confort deliberado destruye tu capacidad de rendir bajo presión',
+  'el cookie jar: cómo documentar tus victorias para usarlas cuando todo se derrumba',
+  'la ciencia del estrés que te hace mejor: creer que el estrés daña... daña más',
+  'el placebo del mindset: cómo lo que crees sobre tu capacidad cambia tu fisiología real',
+  'staying hard: mantener disciplina cuando no hay ninguna razón emocional para seguir',
+  'reencuadrar el sufrimiento: la diferencia biológica entre verlo como amenaza o como entrenamiento',
+  'el objetivo imposible: por qué las metas realistas no transforman a nadie',
+  'accountability sin excusas: el inventario honesto que todos evitan y todos necesitan',
+  'workload mindset: ver la carga como oportunidad cambia tus hormonas literalmente',
+  'visualización como preparación neurológica: no es motivación, es programar tu sistema nervioso',
+  'la brecha entre el 40% y el 100%: dónde vive el crecimiento que nunca alcanzas',
+  'tomar almas: el poder de superar expectativas cuando nadie cree en ti',
+  'la biología del fracaso: qué pasa en tu cuerpo cuando decides levantarte versus quedarte abajo',
+  'staying hard en modo fácil: el peligro de los períodos de confort y cómo salir de ellos',
+]
+
 const slugifyAngle = (s) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 60)
@@ -401,6 +485,12 @@ const BASES = [
     system: herramientasSystem, buildUserPrompt: herramientasUserPrompt,
     long:  { name: 'Herramientas de IA',         category: 'Herramientas de IA' },
     short: { name: 'Herramientas Express',        category: 'Herramientas Express' },
+  },
+  {
+    key: 'mentalidad', type: 'topic', angles: MENTALIDAD_ANGLES,
+    system: mentalidadSystem, buildUserPrompt: mentalidadUserPrompt,
+    long:  { name: 'Mentalidad',         category: 'Mentalidad' },
+    short: { name: 'Mentalidad Express', category: 'Mentalidad Express' },
   },
 ]
 
