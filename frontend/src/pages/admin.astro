@@ -130,25 +130,25 @@ import Base from '../layouts/Base.astro'
         <input id="s-enabled" type="checkbox" style="accent-color:var(--accent);width:16px;height:16px" />
         <label for="s-enabled" style="font-size:.9rem;color:var(--muted)">Generación automática activada</label>
       </div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 1rem">
-        <input id="s-rotate" type="checkbox" style="accent-color:var(--accent);width:16px;height:16px" />
-        <label for="s-rotate" style="font-size:.9rem;color:var(--muted)">Rotar secciones (genera una por corrida para ahorrar costos)</label>
-      </div>
       <div class="row">
         <div class="field">
           <label class="label">Frecuencia (cada cuántos minutos, mínimo 5)</label>
-          <input id="s-frequency" type="number" min="5" max="10080" class="input" placeholder="60" />
+          <input id="s-frequency" type="number" min="5" max="10080" class="input" placeholder="30" />
         </div>
         <div class="field">
-          <label class="label">Motor de IA</label>
-          <select id="s-provider" class="input">
-            <option value="auto">Automático (reparte carga + failover)</option>
-            <option value="openai">OpenAI</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="groq">Groq (gratis)</option>
-            <option value="gemini">Gemini (gratis)</option>
-          </select>
+          <label class="label">Secciones por ciclo</label>
+          <input id="s-sections" type="number" min="1" max="20" class="input" placeholder="2" />
         </div>
+      </div>
+      <div class="field">
+        <label class="label">Motor de IA</label>
+        <select id="s-provider" class="input">
+          <option value="auto">Automático (prioridad DeepSeek → OpenAI → Gemini → Groq)</option>
+          <option value="deepseek">DeepSeek (prioridad)</option>
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Gemini (gratis)</option>
+          <option value="groq">Groq (gratis, solo respaldo)</option>
+        </select>
       </div>
       <div class="field">
         <label class="label">Categoría por defecto</label>
@@ -419,8 +419,8 @@ import Base from '../layouts/Base.astro'
       if (!res.ok) { settingsInfo.textContent = 'No se pudo cargar la configuración'; return }
       const { settings, providers } = await res.json()
       ;(document.getElementById('s-enabled') as HTMLInputElement).checked = !!settings.enabled
-      ;(document.getElementById('s-rotate') as HTMLInputElement).checked = !!settings.rotateSections
-      ;(document.getElementById('s-frequency') as HTMLInputElement).value = String(settings.frequencyMinutes || 60)
+      ;(document.getElementById('s-sections') as HTMLInputElement).value = String(settings.sectionsPerCycle || 2)
+      ;(document.getElementById('s-frequency') as HTMLInputElement).value = String(settings.frequencyMinutes || 30)
       ;(document.getElementById('s-provider') as HTMLSelectElement).value = settings.provider || 'auto'
       ;(document.getElementById('s-category') as HTMLInputElement).value = settings.category || 'Tecnología'
       renderSettingsInfo(settings, providers)
@@ -434,9 +434,9 @@ import Base from '../layouts/Base.astro'
     const last = settings.lastRunAt ? new Date(settings.lastRunAt).toLocaleString('es') : 'nunca'
     const prov = providers?.length ? providers.join(', ') : 'ninguno (configurá OPENAI_API_KEY o DEEPSEEK_API_KEY)'
     const pb = settings.playbook
-    const freq = settings.frequencyMinutes || 60
+    const freq = settings.frequencyMinutes || 30
     const freqTxt = freq % 60 === 0 ? `${freq / 60} h` : `${freq} min`
-    const modo = settings.rotateSections ? 'una sección por corrida (rotando)' : 'todas las secciones por corrida'
+    const modo = `${settings.sectionsPerCycle || 2} secciones por ciclo (rotando)`
     settingsInfo.innerHTML =
       `Motores conectados: <b>${prov}</b><br>Frecuencia: cada <b>${freqTxt}</b> · ${modo}<br>Última generación automática: ${last}` +
       (pb ? `<br>🧠 Aprendizaje: ${pb.runs || 0} ciclos · actualizado ${pb.updatedAt ? new Date(pb.updatedAt).toLocaleString('es') : '-'}` : '') +
@@ -449,8 +449,8 @@ import Base from '../layouts/Base.astro'
     btn.disabled = true; btn.textContent = 'Guardando...'
     const body = {
       enabled: (document.getElementById('s-enabled') as HTMLInputElement).checked,
-      rotateSections: (document.getElementById('s-rotate') as HTMLInputElement).checked,
-      frequencyMinutes: Number((document.getElementById('s-frequency') as HTMLInputElement).value) || 60,
+      sectionsPerCycle: Number((document.getElementById('s-sections') as HTMLInputElement).value) || 2,
+      frequencyMinutes: Number((document.getElementById('s-frequency') as HTMLInputElement).value) || 30,
       provider: (document.getElementById('s-provider') as HTMLSelectElement).value,
       category: (document.getElementById('s-category') as HTMLInputElement).value.trim() || 'Tecnología',
     }

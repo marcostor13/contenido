@@ -236,14 +236,21 @@ async function runAutogen({ force = false } = {}) {
   }
 
   // ===== Cron programado: una etapa por corrida =====
+  // Cada ciclo genera `sectionsPerCycle` secciones (2 por defecto), rotando entre
+  // todas con `_sectionRr`. Para no exceder el timeout, se genera UNA por corrida:
+  //   cursor 0        → inicio de ciclo: respeta la frecuencia y solo aprende.
+  //   cursor 1..N     → genera la sección k del ciclo (k = cursor - 1).
   const cursor = s._cycleCursor || 0
-  const list = s.rotateSections ? [SECTIONS[(s._sectionRr || 0) % SECTIONS.length]] : SECTIONS
+  const startIdx = (s._sectionRr || 0) % SECTIONS.length
+  const count = Math.max(1, Math.min(SECTIONS.length, s.sectionsPerCycle || 2))
+  // Secciones de este ciclo (consecutivas desde el puntero de rotación).
+  const cycleSections = Array.from({ length: count }, (_, i) => SECTIONS[(startIdx + i) % SECTIONS.length])
 
   // Cursor 0: inicio de ciclo. Respetar la frecuencia y ejecutar solo el aprendizaje.
   if (cursor === 0) {
     if (s.lastRunAt) {
       const elapsedMin = (Date.now() - new Date(s.lastRunAt).getTime()) / 6e4
-      const freqMin = s.frequencyMinutes || 60
+      const freqMin = s.frequencyMinutes || 30
       if (elapsedMin < freqMin - 0.25) {
         return { skipped: true, reason: `frecuencia: faltan ${(freqMin - elapsedMin).toFixed(1)} min` }
       }
@@ -254,9 +261,9 @@ async function runAutogen({ force = false } = {}) {
     return { ok: true, phase: 'aprendizaje', reason: 'playbook actualizado; la generación arranca en la próxima corrida' }
   }
 
-  // Cursor >= 1: generar la sección (cursor - 1).
+  // Cursor >= 1: generar la sección (cursor - 1) del ciclo.
   const idx = cursor - 1
-  if (idx >= list.length) {
+  if (idx >= cycleSections.length) {
     // Defensa: cursor fuera de rango → reiniciar ciclo.
     await saveSettings({ _cycleCursor: 0 })
     return { skipped: true, reason: 'ciclo reiniciado' }
@@ -264,7 +271,7 @@ async function runAutogen({ force = false } = {}) {
 
   const playbook = await currentPlaybook()
   const usedKeys = await buildUsedKeys()
-  const sec = list[idx]
+  const sec = cycleSections[idx]
 
   let result
   try {
@@ -273,15 +280,16 @@ async function runAutogen({ force = false } = {}) {
     result = { error: true, section: sec.key, message: e.message }
   }
 
-  const isLast = idx >= list.length - 1
+  const isLast = idx >= cycleSections.length - 1
   const patch = { _rr: ((s._rr || 0) + 1) % 1000 }
 
   if (isLast) {
-    // Cierre del ciclo: reinicia el cursor y arranca el reloj de la frecuencia.
-    // (lastRunAt se fija aunque alguna sección haya fallado, para no repetir el ciclo.)
+    // Cierre del ciclo: reinicia el cursor, avanza la rotación `count` secciones y
+    // arranca el reloj de la frecuencia (aunque alguna sección haya fallado, para
+    // no repetir el ciclo).
     patch._cycleCursor = 0
+    patch._sectionRr = (startIdx + count) % SECTIONS.length
     patch.lastRunAt = new Date()
-    if (s.rotateSections) patch._sectionRr = ((s._sectionRr || 0) + 1) % SECTIONS.length
   } else {
     patch._cycleCursor = cursor + 1
   }

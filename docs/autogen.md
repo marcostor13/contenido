@@ -72,12 +72,13 @@ genera para entrar en ese tope **ya formateado** (título en negrita + cuerpo + 
   administrador → pestaña **Generar con IA** → *Automatización (cron)*. La función solo
   genera si está activada y si pasó el intervalo configurado (mínimo de seguridad **5 minutos**,
   máximo 10080 = 7 días). Las corridas en las que aún no toca generar salen de inmediato (sin costo de IA).
-- La frecuencia se guarda como `frequencyMinutes`. Los valores antiguos en `frequencyHours`
-  se migran automáticamente a minutos al leer la configuración.
-- **Rotación de secciones** (`rotateSections`): si está **desactivada** (default), cada corrida
-  genera una pieza por **cada** sección. Si está **activada**, genera **una sola sección por
-  corrida**, rotando entre ellas — útil para abaratar el costo de IA. Cada sección termina
-  apareciendo por igual con el tiempo; el puntero de rotación es `_sectionRr`.
+- La frecuencia se guarda como `frequencyMinutes` (default **30 min**). Los valores antiguos en
+  `frequencyHours` se migran automáticamente a minutos al leer la configuración.
+- **Secciones por ciclo** (`sectionsPerCycle`, default **2**): cada ciclo genera esa cantidad de
+  secciones, rotando entre todas con el puntero `_sectionRr` (así todas aparecen por igual con el
+  tiempo). Para no exceder el límite de tiempo de las funciones, se genera **una sección por corrida**
+  del cron (máquina de estados `_cycleCursor`: primero aprende, luego una sección por corrida hasta
+  completar el ciclo); recién entonces arranca el reloj de la frecuencia.
 
 ## Generación manual (administrador)
 
@@ -87,10 +88,19 @@ Pestaña **Generar con IA**:
 - **Generar todas las secciones ahora:** dispara el flujo completo una vez y publica una pieza
   por cada sección (Historias, Productividad & IA y Potencial Humano).
 
-## Balanceo de carga OpenAI / DeepSeek
+## Gateway de IA: prioridad y failover
 
-Si están configuradas ambas keys y el motor está en `auto`, las cargas se reparten
-(round-robin). También se puede forzar uno de los dos motores desde el administrador.
+El gateway (`api/lib/llm.js`, función `chatResilient`) elige el proveedor por **prioridad** y
+hace **failover** automático si uno no responde. Orden de prioridad (modo `auto`):
+
+1. **DeepSeek** (prioridad — su mejor modelo, `deepseek-chat` V3)
+2. **OpenAI**
+3. **Gemini** (gratis)
+4. **Groq** (gratis, **solo respaldo** — último de la lista)
+
+En `auto` usa el de mayor prioridad disponible y, si falla (saldo, clave, límite o timeout),
+reintenta con el siguiente. También se puede **forzar** un motor desde el administrador; incluso
+forzado, el resto queda como respaldo ordenado por prioridad (Groq siempre al final).
 
 ## Variables de entorno
 
