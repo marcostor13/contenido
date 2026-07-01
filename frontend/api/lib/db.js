@@ -32,14 +32,16 @@ async function learnings() {
 const DEFAULT_SETTINGS = {
   _id: 'autogen',
   enabled: false, // el cron solo genera si está activado
-  frequencyMinutes: 60, // cada cuántos minutos generar (mínimo limitado por el cron base)
-  rotateSections: false, // true = una sección por corrida (ahorra costos); false = todas
+  frequencyMinutes: 30, // cada cuántos minutos generar un ciclo (default media hora)
+  sectionsPerCycle: 2, // cuántas secciones genera por ciclo (rotando entre todas)
+  rotateSections: false, // legado (ya no se usa; ver sectionsPerCycle)
   lastRunAt: null, // última generación automática
   lastError: null, // último error registrado
   category: 'Tecnología', // categoría por defecto para lo autogenerado
-  provider: 'auto', // 'auto' | 'openai' | 'deepseek'
-  _rr: 0, // contador round-robin para balanceo de carga
-  _sectionRr: 0, // puntero de rotación de secciones (cuando rotateSections está activo)
+  provider: 'auto', // 'auto' (prioridad DeepSeek→OpenAI→Gemini→Groq) | 'deepseek' | 'openai' | 'groq' | 'gemini'
+  _rr: 0, // contador round-robin (compatibilidad)
+  _sectionRr: 0, // puntero de rotación de secciones entre ciclos
+  _cycleCursor: 0, // etapa dentro del ciclo (0 = aprender; N = generar sección N)
 }
 
 async function getSettings() {

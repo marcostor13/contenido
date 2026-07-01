@@ -11,6 +11,8 @@
 // lo dejamos en false (su capa de compatibilidad es más quisquillosa); el prompt ya
 // exige un JSON y el parser tolera texto alrededor.
 
+// priority: orden de preferencia en modo 'auto' y para el failover (menor = primero).
+//   DeepSeek es la prioridad (su mejor modelo), Groq queda de último (solo respaldo).
 const PROVIDERS = {
   openai: {
     name: 'openai',
@@ -18,13 +20,16 @@ const PROVIDERS = {
     key: () => process.env.OPENAI_API_KEY,
     model: () => process.env.OPENAI_MODEL || 'gpt-4o-mini',
     jsonMode: true,
+    priority: 2,
   },
   deepseek: {
     name: 'deepseek',
     url: 'https://api.deepseek.com/chat/completions',
     key: () => process.env.DEEPSEEK_API_KEY,
+    // Mejor modelo de DeepSeek para contenido (V3). Configurable con DEEPSEEK_MODEL.
     model: () => process.env.DEEPSEEK_MODEL || 'deepseek-chat',
     jsonMode: true,
+    priority: 1,
   },
   groq: {
     name: 'groq',
@@ -32,6 +37,7 @@ const PROVIDERS = {
     key: () => process.env.GROQ_API_KEY,
     model: () => process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
     jsonMode: true,
+    priority: 9, // solo respaldo
   },
   gemini: {
     name: 'gemini',
@@ -39,30 +45,35 @@ const PROVIDERS = {
     key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
     model: () => process.env.GEMINI_MODEL || 'gemini-2.0-flash',
     jsonMode: false,
+    priority: 3,
   },
 }
 
-// Devuelve la lista de proveedores configurados (con key disponible).
+// Devuelve la lista de proveedores configurados (con key disponible), ordenados
+// por prioridad (menor primero: DeepSeek → OpenAI → Gemini → Groq).
 function availableProviders() {
-  return Object.values(PROVIDERS).filter(p => !!p.key())
+  return Object.values(PROVIDERS)
+    .filter(p => !!p.key())
+    .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
 }
 
 // Elige el proveedor a usar.
-//  - preference 'openai' | 'deepseek' fuerza uno (si tiene key).
-//  - 'auto' reparte la carga según el contador round-robin (rr).
+//  - preference 'openai' | 'deepseek' | 'groq' | 'gemini' fuerza uno (si tiene key).
+//  - 'auto' usa el de mayor prioridad disponible (DeepSeek primero).
 function pickProvider(preference, rr = 0) {
   const available = availableProviders()
   if (!available.length) {
-    throw new Error('No hay ningún proveedor de IA configurado. Definí OPENAI_API_KEY y/o DEEPSEEK_API_KEY.')
+    throw new Error('No hay ningún proveedor de IA configurado. Definí DEEPSEEK_API_KEY, OPENAI_API_KEY, GROQ_API_KEY o GEMINI_API_KEY.')
   }
   if (preference && preference !== 'auto' && PROVIDERS[preference]?.key()) {
     return PROVIDERS[preference]
   }
-  return available[rr % available.length]
+  return available[0]
 }
 
-// Devuelve los proveedores a probar EN ORDEN: primero el preferido (o el del
-// round-robin), y a continuación el resto como respaldo para el failover.
+// Devuelve los proveedores a probar EN ORDEN para el failover: primero el preferido
+// (o el de mayor prioridad en 'auto'), y el resto ordenado por prioridad como respaldo.
+// Groq, al tener la prioridad más baja, siempre queda de último (solo respaldo).
 function providersInOrder(preference, rr = 0) {
   const first = pickProvider(preference, rr)
   const rest = availableProviders().filter(p => p.name !== first.name)
