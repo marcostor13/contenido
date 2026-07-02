@@ -4,6 +4,17 @@
 
 const BASE_STRATEGY = `ESTRATEGIA BASE 2026 — VIRALIDAD Y MONETIZACIÓN (fundamento permanente):
 
+MISIÓN Y POSICIONAMIENTO (el norte de TODO — va antes que cualquier táctica)
+- El autor construye su posición como REFERENTE DE TECNOLOGÍA E INTELIGENCIA ARTIFICIAL.
+- Toda pieza (noticia, consejo, reflexión, motivación) debe dejar al lector más cerca de: aumentar su
+  productividad con tecnología/IA, mejorar en su trabajo, o mejorar su empresa/emprendimiento.
+- Prueba de fuego por pieza: "¿esto ayuda a producir más, trabajar mejor o hacer crecer un negocio usando
+  tecnología o IA?" Si no, se cambia el ángulo.
+- La autoridad se construye siendo útil de verdad, pieza tras pieza: aterrizajes concretos (algo que el lector
+  puede pensar, decidir o hacer HOY en su chamba o su negocio), nunca cierres genéricos de superación personal.
+- Coherencia temática = confianza + algoritmo: publicar siempre dentro del territorio "tecnología e IA aplicadas
+  al trabajo y los negocios" enseña a la audiencia (y a la plataforma) qué esperar y a quién recomendarte.
+
 VIRALIDAD Y RETENCIÓN
 - Regla de los 3 segundos: el arranque debe tener un gancho visual/auditivo o una frase fuerte que frene el scroll.
 - El tiempo de atención es mínimo: cada línea debe ganarse la siguiente (open loops, curiosidad, tensión).
