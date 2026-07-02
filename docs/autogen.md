@@ -30,6 +30,26 @@ breve (≈150-280 palabras; Motivación ≈120-220). Las secciones por ángulo e
 recientemente para variar en cada corrida; las categorías nuevas aparecen automáticamente como
 filtros en la página principal.
 
+## Dos formatos por pieza: post de LinkedIn + guion de video
+
+Cada generación produce DOS formatos del mismo contenido:
+
+1. **Post para LinkedIn** (`content`): estructurado según el algoritmo — las 2 primeras líneas
+   funcionan como gancho (≈200 caracteres visibles antes del "ver más"), párrafos de 1-2 líneas
+   con aire visual para maximizar el dwell time, remate + pregunta abierta al cierre.
+2. **Guion de video vertical** (`videoScript`): 40-60 segundos en lenguaje HABLADO peruano para
+   grabar TikTok, Instagram Reels, YouTube Shorts y Facebook. Estructura de retención con marcas:
+   `[GANCHO]` (0-3s, sin saludos), `[PROMESA]`, `[DESARROLLO]` (con un bucle abierto),
+   `[REMATE]` (payoff) y `[CIERRE]` (pregunta + efecto bucle con la primera frase).
+
+En la página del artículo hay dos botones: *Copiar para LinkedIn* (con contador `N/3000`) y
+*Copiar guion de video*, más un visor plegable del guion.
+
+Los prompts aplican bloques transversales de **psicología de la atención** (brecha de curiosidad,
+ruptura de patrón, emoción dominante, especificidad, bucles abiertos y payoff), **anti-clichés**,
+**interacción/debate** y la estructura por plataforma. Ver `api/lib/sections.js` y la base
+permanente en `api/lib/knowledge.js`.
+
 ## Límite de LinkedIn (3000 caracteres)
 
 Un post normal de LinkedIn admite **3000 caracteres** (contando espacios). Todo el contenido se
