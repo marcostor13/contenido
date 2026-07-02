@@ -4,6 +4,27 @@ Genera artículos reales, interesantes, animados y con un sarcasmo ligero de for
 automática (cron) o manual (desde el administrador), conectando noticias y herramientas
 reales con la tecnología actual y la inteligencia artificial.
 
+## Misión (el norte de todo el contenido)
+
+Posicionar al autor como **referente de tecnología e IA** cuyo contenido ayuda a la gente a
+**aumentar su productividad, mejorar en su trabajo o hacer crecer su empresa**. Un bloque
+transversal `MISION` (en `api/lib/sections.js`) se inyecta al inicio de TODOS los prompts:
+noticias, consejos, reflexiones y motivación deben aterrizar siempre en ese objetivo, con la
+prueba de fuego "¿esto ayuda a producir más, trabajar mejor o hacer crecer un negocio usando
+tecnología o IA?". La fase de aprendizaje también optimiza hacia esa meta (`learn.js` y la
+estrategia base en `knowledge.js`).
+
+- **Historias**: la noticia (cotidiana o de IA/tecnología con impacto en la gente) es el gancho;
+  la moraleja aterriza en el trabajo o el negocio del lector. Se sumaron feeds de noticias de
+  IA/tecnología/emprendimiento en `sources.js`.
+- **Productividad & IA**: baja los consejos a dos terrenos — el empleado que quiere destacar y
+  el emprendedor que quiere que su negocio funcione mejor.
+- **Potencial Humano**: potencial EN LA ERA DE LA IA — hábitos, foco y mentalidad aterrizados en
+  el rendimiento laboral, con la tecnología como aliada (o saboteadora) del hábito.
+- **Motivación**: motiva a dar el paso tecnológico postergado (aprender, probar la IA,
+  actualizarse, emprender), con agencia y sin miedo barato; el reto de hoy es un paso pequeño
+  y tecnológico.
+
 ## Secciones
 
 Por defecto, en cada corrida del cron se genera **una pieza por cada sección** (todas con la

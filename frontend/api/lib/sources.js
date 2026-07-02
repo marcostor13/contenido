@@ -12,6 +12,11 @@ const GN_QUERIES = [
   'https://news.google.com/rss/search?q=récord%20OR%20sorprendente%20OR%20viral&hl=es-419&gl=US&ceid=US:es-419',
   'https://news.google.com/rss/search?q=historia%20OR%20descubrimiento%20OR%20curiosidad&hl=es-419&gl=US&ceid=US:es-419',
   'https://news.google.com/rss/search?q=ciencia%20OR%20naturaleza%20OR%20espacio&hl=es-419&gl=US&ceid=US:es-419',
+  // Noticias de IA/tecnología con impacto en el trabajo y los negocios de la gente
+  // (materia prima directa para el posicionamiento como referente tech).
+  'https://news.google.com/rss/search?q=inteligencia%20artificial%20trabajo%20OR%20empleo%20OR%20empresas&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=inteligencia%20artificial%20OR%20ChatGPT%20OR%20tecnología%20productividad&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=emprendedores%20OR%20negocios%20tecnología%20OR%20digital&hl=es-419&gl=US&ceid=US:es-419',
 ]
 
 const decode = (s = '') =>
