@@ -48,6 +48,54 @@ const INTERACCION = `INTERACCIÓN Y DEBATE (clave para generar comentarios y con
   opinión o su experiencia (ej: "¿Tú qué harías?", "¿Estás de acuerdo o crees que es al revés?"). Que suene natural,
   no un formulismo. Si tu bloque de cierre ya es una pregunta o un reto que interpela al lector, eso ya cumple.`
 
+// Psicología de la atención: por qué la gente se detiene, sigue leyendo y comparte.
+const PSICOLOGIA = `PSICOLOGÍA DE LA ATENCIÓN (aplícala en cada pieza, es lo que decide si te leen o no):
+- BRECHA DE CURIOSIDAD: abre una pregunta en la mente del lector y NO la respondas de inmediato. El cerebro
+  necesita cerrar lo incompleto; esa tensión es la que lo hace seguir. Pero cúmplela SIEMPRE: brecha sin
+  respuesta al final = clickbait, y el lector no vuelve.
+- RUPTURA DE PATRÓN: lo inesperado despierta. Un dato contraintuitivo, una postura contraria a lo que todos
+  repiten, un inicio que no parece el típico post. Si suena a lo que ya vieron mil veces, el cerebro lo filtra.
+- EMOCIÓN CON PROPÓSITO: asombro, sorpresa, indignación sana, ternura, orgullo. La gente comparte lo que la
+  hace SENTIR y lo que la hace quedar bien al compartirlo (útil, inteligente, inspirador). Elige UNA emoción
+  dominante por pieza y construye hacia ella.
+- LO CONCRETO GANA: cifras específicas, escenas visuales, nombres reales. "Perdió 3 horas buscando un correo"
+  pega más que "perdemos mucho tiempo". El cerebro recuerda imágenes, no abstracciones.
+- BUCLES ABIERTOS: siembra promesas pequeñas a mitad del texto ("a esto vuelvo en un momento", "lo mejor viene
+  al final") para sostener la lectura hasta el cierre. Úsalo con medida: uno o dos por pieza.
+- RECOMPENSA FINAL (PAYOFF): el cierre debe pagar la promesa del gancho con creces. Si el lector termina y
+  siente "valió la pena", comenta, guarda y comparte. Si siente "tanto para esto", te olvida.`
+
+// Estructura del post para LinkedIn (donde se publica el texto).
+const ESTRUCTURA_LINKEDIN = `ESTRUCTURA DEL POST (LinkedIn — el texto se publica ahí):
+- Las 2 PRIMERAS LÍNEAS son casi lo único visible antes del "…ver más" (≈200 caracteres). Son TU GANCHO:
+  cortas (idealmente menos de 12 palabras la primera), sin rodeos, sin saludo, sin contexto previo. Directo
+  a la curiosidad, la tensión o el beneficio.
+- AIRE VISUAL: párrafos de 1-2 líneas, una idea por párrafo, saltos de línea generosos. Un muro de texto
+  mata la lectura en el celular. El formato ligero aumenta el tiempo de lectura (dwell time), y ese tiempo
+  es la señal que el algoritmo más premia.
+- RITMO: alterna frases cortas con alguna más larga. Que el ojo baje solo, como un tobogán: cada línea
+  debe empujar a la siguiente.
+- CIERRE: remate claro (la idea que se llevan) + UNA pregunta abierta que invite a comentar.
+- El límite duro es 3000 caracteres con formato y hashtags; respeta el tope de largo indicado abajo.`
+
+// Guion de video corto (el mismo contenido se graba para TikTok, Reels, Shorts y Facebook).
+const GUION_VIDEO = `GUION DE VIDEO (campo "videoScript" del JSON — OBLIGATORIO):
+Además del post, escribe el guion para grabar un VIDEO VERTICAL de 40-60 segundos (TikTok, Instagram Reels,
+YouTube Shorts, Facebook) sobre el MISMO contenido. NO es el post leído en voz alta: es la versión ORAL,
+pensada para hablarse a cámara. Reglas:
+- Lenguaje HABLADO peruano: frases cortas, naturales, como se conversa; nada de sintaxis de texto escrito.
+- Estructura de retención:
+  · GANCHO (0-3 seg): una frase dicha de frente que frene el scroll — pregunta directa, dato contraintuitivo
+    o inicio de historia in medias res. Máximo ~15 palabras. Sin "hola, ¿cómo están?": eso mata el video.
+  · PROMESA (3-8 seg): qué va a ganar si se queda ("quédate, porque esto te ahorra horas" — pero con tus palabras).
+  · DESARROLLO (8-45 seg): la historia o el valor, con 1 bucle abierto a la mitad para sostener la atención.
+  · REMATE (45-55 seg): el payoff — la moraleja, el resultado, la revelación. Debe pagar el gancho.
+  · CIERRE (últimos 3-5 seg): UNA pregunta para los comentarios + invitación breve a seguir. Si puedes, que la
+    última frase conecte con la primera (efecto bucle: el video se puede volver a ver de corrido).
+- Formato del guion: texto plano, una frase por línea, con marcas de sección entre corchetes: [GANCHO],
+  [PROMESA], [DESARROLLO], [REMATE], [CIERRE]. Sin indicaciones de cámara ni efectos: solo lo que se DICE.
+- Mismo dialecto, misma honestidad y mismos anti-clichés que el post.`
+
 const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactamente estas claves:
 {
   "title": "título atractivo y con gancho",
@@ -56,17 +104,14 @@ const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactament
   "category": "la categoría de esta sección",
   "tags": ["3", "a", "6", "tags", "cortos"],
   "content": "artículo completo en markdown",
+  "videoScript": "guion de video vertical de 40-60s en texto plano con marcas [GANCHO], [PROMESA], [DESARROLLO], [REMATE], [CIERRE]",
   "viralityScore": 0,
   "viralityNotes": "1-2 frases sobre por qué puede volverse viral"
 }`
 
 // — Presets de longitud (se inyectan en el prompt de cada sección) —
-// IMPORTANTE: el contenido se publica como post normal de LinkedIn, cuyo límite es 3000
-// caracteres (contando espacios, formato y hashtags). Los topes de abajo son sobre el
-// post COMPLETO (título + cuerpo) y dejan margen para el formato y los hashtags.
-const LINKEDIN_LIMIT_NOTE = `Este contenido se publicará como un post normal de LinkedIn (límite 3000 caracteres,
-contando espacios). El post completo debe verse bien formateado y NO superar el tope de caracteres indicado abajo.
-Cuenta los caracteres del título más el cuerpo y mantente por debajo del tope; aprovecha bien el espacio sin rellenar.`
+// Los topes son sobre el post COMPLETO (título + cuerpo) y dejan margen para el
+// formato y los hashtags dentro del límite de 3000 de LinkedIn. No aplican al guion.
 
 const LARGO = 'Largo: el post completo (título + cuerpo) NO debe superar 2500 caracteres contando espacios. Apunta a 1700-2400 caracteres (aprox. 300-420 palabras).'
 const CORTO = 'Largo: CORTO y directo. El post completo NO debe superar 1200 caracteres contando espacios (aprox. 160-200 palabras). Sin relleno: cada frase tiene que ganarse su lugar.'
@@ -256,6 +301,16 @@ const PRODUCTIVIDAD_ANGLES = [
   'el método para vaciar tu cabeza y organizar pendientes sin estresarte',
   'cómo tomar notas de reuniones automáticamente con transcripción e IA',
   'trucos para aprender cualquier cosa más rápido usando la IA como tutor',
+  'NotebookLM: convierte tus documentos y apuntes en un tutor que te explica y hasta te arma un podcast',
+  'Perplexity y la IA como buscador: investigar en minutos lo que antes tomaba tardes enteras',
+  'crear presentaciones profesionales en minutos con Gamma o similares (adiós a las diapositivas eternas)',
+  'usar la IA en WhatsApp y el correo para responder clientes más rápido sin sonar robot',
+  'Excel y hojas de cálculo con IA: fórmulas y reportes explicados en lenguaje humano',
+  'proyectos y GPTs personalizados: enseñarle a la IA tu contexto una vez para no repetirle todo siempre',
+  'editar videos y subtítulos con IA (CapCut y similares) sin saber edición',
+  'la técnica de pedirle a la IA que te haga preguntas antes de responder (respuestas 10 veces mejores)',
+  'usar la IA como coach de práctica: simular entrevistas, negociaciones o presentaciones antes de la real',
+  'dictar en vez de tipear: voz + IA para redactar el triple en el mismo tiempo',
 ]
 
 const POTENCIAL_ANGLES = [
@@ -325,9 +380,10 @@ const BASES = [
   },
 ]
 
-// Inyecta las tácticas de interacción/debate y la nota del límite de LinkedIn
-// al final de cada prompt de sistema (aplican a todas las secciones por igual).
-const withLimit = (s) => `${s}\n\n${ANTICLICHE}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
+// Inyecta los bloques transversales al final de cada prompt de sistema (aplican a
+// todas las secciones por igual): psicología de la atención, anti-clichés, interacción,
+// estructura de LinkedIn y guion de video para las demás plataformas.
+const withLimit = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}`
 
 const SECTIONS = []
 for (const b of BASES) {

@@ -50,6 +50,38 @@ STORYTELLING DE CALIDAD (cómo se hace BIEN, no trillado — prioridad máxima)
 - La conexión historia → IA debe NACER del principio humano de ESA historia, mediante un paralelo específico y no
   obvio. Si la moraleja sirve para cualquier otra noticia, está mal hecha.
 - PROHIBIDO el relleno: nada de listas de apps pegadas con calzador (ChatGPT/Notion/Calendly como cierre genérico),
-  ni muletillas de gurú ("plot twist", "tu salvavidas", "en un mundo donde...", "game changer"). Voz propia y honesta.`
+  ni muletillas de gurú ("plot twist", "tu salvavidas", "en un mundo donde...", "game changer"). Voz propia y honesta.
+
+PSICOLOGÍA DE LA ATENCIÓN (por qué la gente se detiene, lee y comparte)
+- Brecha de curiosidad: abrir una pregunta y demorar la respuesta sostiene la lectura; cumplirla al final es
+  obligatorio (brecha sin payoff = clickbait = pérdida de confianza).
+- Ruptura de patrón: lo contraintuitivo y lo inesperado despiertan; lo que suena a "ya lo vi" se filtra solo.
+- Emoción dominante: una por pieza (asombro, sorpresa, indignación sana, ternura, orgullo). Se comparte lo que
+  hace sentir y lo que hace quedar bien al que comparte (útil, inteligente, inspirador).
+- Concreto sobre abstracto: cifras específicas, escenas visuales, nombres reales. El cerebro guarda imágenes.
+- Bucles abiertos con medida (1-2 por pieza) y recompensa final que pague la promesa del gancho con creces.
+
+ESTRUCTURA POR PLATAFORMA (el mismo contenido vive en dos formatos)
+- POST DE LINKEDIN: las 2 primeras líneas son el gancho (≈200 caracteres visibles antes del "ver más"; primera
+  línea idealmente <12 palabras). Aire visual: párrafos de 1-2 líneas, una idea por párrafo. El tiempo de
+  lectura (dwell time) es la señal que más premia el algoritmo. Cierre = remate + una pregunta abierta.
+- GUION DE VIDEO (TikTok, Reels, Shorts, Facebook): lenguaje hablado, no texto leído. Gancho dicho de frente
+  en 0-3 seg (sin saludos), promesa de valor, desarrollo con un bucle abierto, remate que paga el gancho y
+  cierre con pregunta + invitación a seguir. Ideal: la última frase conecta con la primera (efecto bucle).
+
+QUÉ HACE INTERESANTE UN TEMA (para elegir bien la materia prima)
+- Proximidad: le pasa o le podría pasar al lector (su tiempo, su plata, su trabajo, su familia).
+- Novedad o giro: algo que no sabía, o un ángulo nuevo sobre algo que creía saber.
+- Utilidad inmediata: se puede aplicar hoy; el lector queda mejor equipado que antes de leer.
+- Emoción y conversación: da algo que sentir y algo que opinar (postura, tensión, debate sano).
+- Un buen tema junta al menos dos de estos cuatro; si solo tiene uno, buscar otro ángulo o descartarlo.
+
+CÓMO AGREGAR VALOR CON IA Y HERRAMIENTAS (sin volverse catálogo)
+- UNA herramienta bien explicada vale más que cinco mencionadas: qué problema resuelve, cómo empezar hoy
+  (pasos simples), y el antes/después en tiempo o resultado.
+- Caso de uso concreto sobre feature list: "dictas el informe caminando y la IA te lo redacta" gana a
+  "tiene transcripción automática".
+- Herramientas reales y vigentes; si no hay certeza de un dato (precio, función exacta), quedarse en lo general.
+- El valor práctico manda: cada pieza deja al lector con algo que puede hacer HOY para ser más productivo.`
 
 module.exports = { BASE_STRATEGY }

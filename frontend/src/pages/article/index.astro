@@ -20,7 +20,16 @@ import Base from '../../layouts/Base.astro'
         </svg>Copiar para LinkedIn
       </button>
       <span id="li-count" class="date" title="Caracteres del post formateado para LinkedIn (límite 3000)"></span>
+      <button id="copy-video" class="btn ghost" style="padding:.45rem .8rem;font-size:.85rem;display:none">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:.35rem">
+          <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+        </svg>Copiar guion de video
+      </button>
     </div>
+    <details id="video-script-box" style="display:none;margin:.5rem 0 0">
+      <summary style="cursor:pointer;font-size:.85rem;color:var(--muted)">Ver guion de video (TikTok / Reels / Shorts)</summary>
+      <pre id="video-script-text" style="white-space:pre-wrap;font-size:.85rem;line-height:1.6;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:.5rem"></pre>
+    </details>
     <hr class="divider" />
     <div id="article-body" class="prose"></div>
     <div id="article-tags" style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.5rem"></div>
@@ -80,6 +89,14 @@ import Base from '../../layouts/Base.astro'
     const len = markdownToLinkedIn(item).length
     liCount.textContent = `${len.toLocaleString('es')}/3000`
     liCount.style.color = len > 3000 ? 'var(--danger)' : 'var(--muted)'
+
+    // Si el artículo tiene guion de video, mostrar el botón y el visor plegable.
+    if (item.videoScript) {
+      document.getElementById('copy-video')!.style.display = ''
+      const box = document.getElementById('video-script-box')!
+      box.style.display = ''
+      document.getElementById('video-script-text')!.textContent = String(item.videoScript)
+    }
 
     show('article')
   }
@@ -167,6 +184,17 @@ import Base from '../../layouts/Base.astro'
     copyBtn.textContent = ok ? '✅ ¡Copiado!' : '❌ No se pudo copiar'
     if (ok) copyBtn.classList.add('success')
     setTimeout(() => { copyBtn.innerHTML = original; copyBtn.classList.remove('success') }, 2000)
+  })
+
+  // — Guion de video (TikTok / Reels / Shorts / Facebook) —
+  const videoBtn = document.getElementById('copy-video') as HTMLButtonElement
+  videoBtn.addEventListener('click', async () => {
+    if (!currentItem?.videoScript) return
+    const ok = await copyText(String(currentItem.videoScript))
+    const original = videoBtn.innerHTML
+    videoBtn.textContent = ok ? '✅ ¡Copiado!' : '❌ No se pudo copiar'
+    if (ok) videoBtn.classList.add('success')
+    setTimeout(() => { videoBtn.innerHTML = original; videoBtn.classList.remove('success') }, 2000)
   })
 
   load()
