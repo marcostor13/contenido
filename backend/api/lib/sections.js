@@ -30,94 +30,56 @@ const ANTICLICHE = `PROHIBIDO (sin excepciones):
 - Listas de apps pegadas con calzador (ChatGPT/Notion/Calendly como solución universal).
 - Positivismo tóxico o pesimismo barato. La realidad es más interesante que los extremos.`
 
-const INTERACCION = `ENGANCHA Y GENERA CONVERSACIÓN:
-- Toma una POSTURA nítida (ver POLÉMICO PERO REAL). La tibieza no genera comentarios.
-- El gancho inicial tiene menos de 2 segundos para funcionar. Si no para el scroll, fracasa.
-- Cierra siempre con UNA pregunta directa al lector que lo obligue a posicionarse (a favor o en
-  contra), no una pregunta de cortesía. Que invite a comentar o a etiquetar a quien piensa distinto.
-  Que suene natural, no como formulario.`
+// GANCHO Y RETENCIÓN: título + primera línea + psicología de la atención (lo que más pesa).
+const GANCHO_RETENCION = `GANCHO Y RETENCIÓN — TÍTULO Y PRIMERA LÍNEA SON EL 90% DEL TRABAJO (menos de 2 segundos para frenar el scroll):
+Escríbelos AL FINAL, con el dato o la tensión más fuerte de la pieza. Nunca el gancho más obvio: el segundo,
+el que sorprende. Si serviría igual para otro artículo, bórralo.
+- TÍTULO — elige UNA fórmula honesta que el texto CUMPLA: afirmación contraintuitiva que reta lo que "todos
+  dan por hecho"; paradoja con cifra ("1.400 millones y no encuentran 11…"); conflicto explícito (quién gana,
+  quién pierde); "por qué X NUNCA/SIEMPRE…"; "qué es X: lo que esconde…"; o pregunta incómoda. PROHIBIDO
+  "todo lo que necesitas saber", "guía definitiva", "esto es lo que pasó", clickbait vacío o describir el
+  tema en vez de tomar postura.
+- PRIMERA LÍNEA (el hook, sin título en el cuerpo): entra por el medio del conflicto, cero preámbulo ni
+  "recientemente". Una idea filosa que obligue a leer la siguiente. Las 2-3 primeras líneas son lo único
+  visible antes del "ver más" de LinkedIn: que ahí ya haya golpe y postura, no calentamiento.
+- BRECHA DE CURIOSIDAD: abre una pregunta y demórala; ciérrala SIEMPRE al final (brecha sin payoff =
+  clickbait). RUPTURA DE PATRÓN: lo contraintuitivo despierta; lo que "ya vieron mil veces" el cerebro lo filtra.
+- CONCRETO > ABSTRACTO: cifras, escenas y nombres reales ("perdió 3 horas buscando un correo", no "perdemos
+  tiempo"). UNA emoción dominante por pieza (asombro, sorpresa, indignación sana, orgullo) y un PAYOFF final
+  que pague el gancho con creces.`
 
-// GANCHOS: la parte que más pesa. Se aplica a TODAS las secciones (título + primera línea).
-const GANCHOS = `GANCHOS — EL TÍTULO Y LA PRIMERA LÍNEA SON EL 90% DEL TRABAJO:
-Tienes menos de 2 segundos para frenar el scroll. Escribe el título y la primera línea AL FINAL,
-cuando ya sabes cuál es el dato o la tensión más fuerte de la pieza. Nunca uses el gancho más obvio:
-usa el segundo, el que sorprende. Si el gancho serviría igual para otro artículo, bórralo.
+// Método de divulgación inspirado en Teresa Gao (@teresagao68): intérprete de la ONU que traduce
+// lo complejo a lo cotidiano y revela el sistema oculto detrás de lo visible.
+const METODO_DIVULGACION = `MÉTODO DE EXPLICACIÓN (divulgación que engancha y de verdad enseña, estilo intérprete):
+- REVELA EL MECANISMO OCULTO: toma algo visible (una moda, una noticia, una cifra, un producto) y explica
+  el SISTEMA detrás — el negocio, el interés, la causa real que casi nadie ve. El valor es el "ahhh, POR ESO
+  pasa", no el dato suelto.
+- TRADUCE LO COMPLEJO A LO SIMPLE: baja lo técnico o abstracto (economía, geopolítica, tecnología, IA) a
+  lenguaje de conversación con UNA analogía cotidiana. Si alguien sin contexto no lo entendería, reescríbelo.
+- DATO DURO + CARA HUMANA: la cifra prueba, la anécdota se recuerda. MITO VS. REALIDAD cuando aplique: lo que
+  "todos creen" contra lo que de verdad pasa (oro para la curiosidad y el debate).
+- ATERRIZA EN EL LECTOR: qué significa esto PARA ÉL — una oportunidad, una lección aplicable o una forma más
+  aguda de leer el mundo. Que salga con más criterio, no solo "informado".`
 
-EL TÍTULO debe hacer UNA de estas cosas (elige la más honesta para esta pieza):
-- Afirmación contraintuitiva que reta a lo que "todos dan por hecho" (respaldada por el dato real).
-- Tensión o conflicto explícito: quién gana, quién pierde, qué se rompe, a quién le conviene.
-- Cifra o hecho concreto que descoloca ("X acaba de hacer Y", no "las novedades sobre Y").
-- Pregunta incómoda que el lector no se había atrevido a hacerse.
-PROHIBIDO en títulos: relleno tipo "todo lo que necesitas saber", "la guía definitiva", "esto es lo
-que pasó", "lo que nadie te contó", clickbait vacío que el texto no cumple, o describir el tema en
-vez de tomar postura. El título promete algo real y el contenido lo entrega.
+// POSTURA Y CONVERSACIÓN: polémico pero real + cierre que obliga a posicionarse.
+const POSTURA_CONVERSACION = `POSTURA Y CONVERSACIÓN (polémico pero real, para generar debate):
+- Toma una postura NÍTIDA y defendible sobre algo que importa; que se pueda debatir con argumentos. Lo tibio
+  no se comenta; lo claro sí.
+- La polémica sale del HECHO real y de tu lectura honesta, NUNCA de exagerar, tergiversar o atacar personas.
+  Nombra al elefante en la sala: lo que muchos piensan y nadie dice, el interés que nadie menciona, la
+  contradicción que el discurso oficial esconde. Incomoda con la verdad, no con el insulto.
+- Cero rage bait, cero difamación, cero dato inventado: una sola mentira quema la credibilidad. Polémico y
+  verificable a la vez.
+- Cierra con UNA pregunta directa que obligue al lector a posicionarse (a favor o en contra) o a etiquetar a
+  quien piensa distinto. Natural, no un formulario.`
 
-LA PRIMERA LÍNEA del contenido (el hook, sin título dentro del cuerpo):
-- Entra por el medio de la acción o del conflicto. Cero contexto, cero preámbulo, cero "recientemente".
-- Una sola idea, filosa, que obligue a leer la segunda línea. Frase corta.
-- Puede ser una afirmación tajante, un dato que incomoda o una contradicción evidente. Nunca una
-  pregunta retórica vacía ni una definición de diccionario.
-- Las 2-3 primeras líneas son las únicas visibles antes del "ver más" de LinkedIn: que ahí ya haya
-  golpe y postura, no calentamiento.`
-
-// POLÉMICO PERO REAL: la controversia nace del hecho verificable, nunca del invento.
-const POLEMICA = `POLÉMICO PERO REAL (genera conversación de verdad):
-- Toma una postura NÍTIDA y defendible sobre algo que a la gente le importa. Que se pueda estar en
-  contra con argumentos. Lo tibio no se comenta; lo claro sí.
-- La polémica sale del HECHO real y de tu lectura honesta de él, JAMÁS de exagerar, tergiversar o
-  atacar personas. Incomoda con la verdad, no con el insulto.
-- Nombra al elefante en la sala: lo que muchos piensan y nadie dice, el interés que nadie menciona,
-  la contradicción que el discurso oficial esconde.
-- Divide con criterio: deja claro de qué lado estás y por qué, con argumentos, no con desprecio.
-- Cero rage bait vacío, cero difamación, cero dato inventado. La credibilidad es el activo: una sola
-  mentira lo quema. El objetivo es ser polémico y verificable a la vez.`
-
-// Método de divulgación inspirado en Teresa Gao (@teresagao68): intérprete de la ONU que
-// explica China/economía/geopolítica al público latino. Su sello: traducir lo complejo a lo
-// cotidiano, revelar el sistema oculto detrás de lo visible, y dejar al lector "más listo".
-const METODO_DIVULGACION = `MÉTODO DE EXPLICACIÓN (divulgación que engancha y de verdad enseña):
-- REVELA EL MECANISMO OCULTO: toma algo visible y cotidiano (una moda, una noticia, una cifra curiosa,
-  un producto) y explica el SISTEMA que hay detrás — el negocio, el interés, la causa real que casi
-  nadie ve. El valor no es el dato suelto, es el "ahhh, POR ESO pasa".
-- TRADUCE LO COMPLEJO A LO SIMPLE: como un buen intérprete, baja lo técnico o abstracto (economía,
-  geopolítica, tecnología, IA) a lenguaje de conversación, con UNA analogía cotidiana. Si alguien sin
-  contexto no lo entendería, reescríbelo. Cero jerga, cero tecnicismo sin explicar.
-- DATO DURO + CARA HUMANA: combina una cifra concreta y verificable con un ejemplo o historia humana
-  que la haga tangible. El número prueba; la anécdota se recuerda. ("1.400 millones de personas… y no
-  encuentran 11 para el Mundial" pega más que "China tiene mucha población").
-- MITO VS. REALIDAD: cuando aplique, contrasta lo que "todos creen" con lo que de verdad pasa. Ese
-  choque es oro para la curiosidad y el debate, y posiciona tu criterio.
-- ATERRIZA EN EL LECTOR: cierra mostrando qué significa esto PARA ÉL — una oportunidad que puede
-  aprovechar, una lección aplicable o una forma más aguda de leer el mundo. Que salga con más capacidad
-  de análisis que cuando llegó, no solo "informado".
-- FORMATOS DE TÍTULO que funcionan en este estilo (elige el más honesto para la pieza): la paradoja con
-  cifra ("X millones y ni uno hace Y"), el "por qué X NUNCA/SIEMPRE…", o "qué es X: la [moda/noticia]
-  que esconde [el negocio/la razón] que nadie te cuenta". El título promete una revelación concreta y
-  el texto la cumple — nunca clickbait vacío.`
-
-// Psicología de la atención: por qué la gente se detiene, sigue leyendo y comparte.
-const PSICOLOGIA = `PSICOLOGÍA DE LA ATENCIÓN (aplícala en cada pieza, es lo que decide si te leen o no):
-- BRECHA DE CURIOSIDAD: abre una pregunta en la mente del lector y NO la respondas de inmediato. El cerebro
-  necesita cerrar lo incompleto; esa tensión es la que lo hace seguir. Pero cúmplela SIEMPRE: brecha sin
-  respuesta al final = clickbait, y el lector no vuelve.
-- RUPTURA DE PATRÓN: lo inesperado despierta. Un dato contraintuitivo, una postura contraria a lo que todos
-  repiten, un inicio que no parece el típico post. Si suena a lo que ya vieron mil veces, el cerebro lo filtra.
-- EMOCIÓN CON PROPÓSITO: asombro, sorpresa, indignación sana, orgullo. La gente comparte lo que la hace SENTIR
-  y lo que la hace quedar bien al compartirlo (útil, inteligente, con criterio). Elige UNA emoción dominante
-  por pieza y construye hacia ella.
-- LO CONCRETO GANA: cifras específicas, escenas visuales, nombres reales. "Perdió 3 horas buscando un correo"
-  pega más que "perdemos mucho tiempo". El cerebro recuerda imágenes, no abstracciones.
-- RECOMPENSA FINAL (PAYOFF): el cierre debe pagar la promesa del gancho con creces. Si el lector termina y
-  siente "valió la pena", comenta, guarda y comparte. Si siente "tanto para esto", te olvida.`
-
-// Estructura del post para LinkedIn (donde se publica el texto).
-const ESTRUCTURA_LINKEDIN = `ESTRUCTURA DEL POST (LinkedIn — el texto se publica ahí):
-- AIRE VISUAL: párrafos de 1-2 líneas, una idea por párrafo, saltos de línea generosos. Un muro de texto
-  mata la lectura en el celular. El formato ligero aumenta el tiempo de lectura (dwell time), y ese tiempo
-  es la señal que el algoritmo más premia.
-- RITMO: alterna frases cortas con alguna más larga. Que el ojo baje solo, como un tobogán: cada línea
-  debe empujar a la siguiente.
-- El límite duro es 3000 caracteres con formato y hashtags; respeta el tope de largo indicado abajo.`
+// Formato de publicación (LinkedIn) + límite de largo.
+const FORMATO_LINKEDIN = `FORMATO (LinkedIn — donde se publica el texto):
+- AIRE VISUAL: párrafos de 1-2 líneas, una idea por párrafo, saltos generosos. El muro de texto mata la
+  lectura en el móvil y baja el dwell time (la señal que más premia el algoritmo).
+- RITMO: alterna frases cortas con alguna más larga; que el ojo baje solo, cada línea empujando a la siguiente.
+- El post completo (título + cuerpo + hashtags) debe entrar bajo el tope de largo indicado abajo, dentro del
+  límite de 3000 caracteres de LinkedIn.`
 
 // Guion de video corto: el mismo contenido se graba para TikTok, Reels, Shorts y Facebook.
 const GUION_VIDEO = `GUION DE VIDEO (campo "videoScript" del JSON — OBLIGATORIO):
@@ -150,14 +112,11 @@ const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactament
   "viralityNotes": "1-2 frases sobre por qué puede volverse viral"
 }`
 
-const LINKEDIN_LIMIT_NOTE = `FORMATO LINKEDIN: este post se publicará en LinkedIn (límite 3000 caracteres contando
-espacios y formato). El post completo (título + cuerpo + hashtags) debe quedar por debajo del tope indicado.`
-
 const LARGO  = 'Largo: entre 1700 y 2400 caracteres totales (aprox. 300-420 palabras). Sin relleno.'
 const CORTO  = 'Largo: CORTO. Máximo 1200 caracteres totales (aprox. 160-200 palabras). Cada frase se gana su lugar.'
 const BREVE  = 'Largo: BREVE y potente. Máximo 900 caracteres totales (aprox. 120-150 palabras). Si una línea no aporta, fuera.'
 
-const withWrap = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${METODO_DIVULGACION}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrap = (s) => `${s}\n\n${GANCHO_RETENCION}\n\n${METODO_DIVULGACION}\n\n${POSTURA_CONVERSACION}\n\n${ANTICLICHE}\n\n${FORMATO_LINKEDIN}\n\n${GUION_VIDEO}`
 
 // ─── Sección 1: NOTICIAS ─────────────────────────────────────────────────────
 // Noticia real importante → explicada con voz propia, humor y análisis honesto.
@@ -595,7 +554,7 @@ const BASES = [
   },
 ]
 
-const withWrapFn = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${METODO_DIVULGACION}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrapFn = (s) => `${s}\n\n${GANCHO_RETENCION}\n\n${METODO_DIVULGACION}\n\n${POSTURA_CONVERSACION}\n\n${ANTICLICHE}\n\n${FORMATO_LINKEDIN}\n\n${GUION_VIDEO}`
 
 const SECTIONS = []
 for (const b of BASES) {
