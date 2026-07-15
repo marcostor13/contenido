@@ -1,32 +1,68 @@
-// Gateway / capa de abstracción de LLM con failover automático.
+// Gateway / capa de abstracción de LLM con failover automático y prioridad.
 //
-// PROVEEDORES (en orden de failover cuando el primer slot falla):
-//   1. groq        — llama-3.3-70b-versatile  100 K TPD gratis
-//   2. groq_fast   — llama-3.1-8b-instant     pool propio (~500 K TPD), mismo key
-//   3. cerebras    — llama-3.3-70b            1 M TPD gratis, API OpenAI-compatible
-//   4. gemini      — gemini-2.5-flash         250 RPD / 250 K TPM gratis
-//   5. gemini_lite — gemini-2.5-flash-lite    1 000 RPD (4× más), mismo key
-//   6. openai      — gpt-4o-mini              pago, alta fiabilidad
-//   7. deepseek    — deepseek-chat            pago económico
+// PROVEEDORES por PRIORIDAD (menor `priority` = se usa primero en modo 'auto' y
+// es el primero del failover). NVIDIA NIM encabeza la lista: da acceso GRATIS a los
+// mejores modelos abiertos (DeepSeek, Llama, Qwen, Kimi…) con endpoint compatible
+// con OpenAI. Los demás quedan como respaldo si NVIDIA no tiene key o falla.
+//   1. nvidia      — meta/llama-3.3-70b-instruct    NVIDIA NIM, gratis, muy fiable
+//   2. nvidia_pro  — deepseek-ai/deepseek-v3.1       NVIDIA NIM, gratis, máxima calidad
+//   3. cerebras    — llama-3.3-70b                   1 M TPD gratis, latencia baja
+//   4. gemini      — gemini-2.5-flash                250 RPD / 250 K TPM gratis
+//   5. gemini_lite — gemini-2.5-flash-lite           1 000 RPD (4× más), mismo key
+//   6. groq        — llama-3.3-70b-versatile         100 K TPD gratis
+//   7. groq_fast   — llama-3.1-8b-instant            pool propio (~500 K TPD), mismo key
+//   8. openai      — gpt-4o-mini                     pago, alta fiabilidad
+//   9. deepseek    — deepseek-chat                   pago económico
 //
 // CLAVE: modelos distintos dentro del mismo proveedor tienen pools de cuota separados.
-// Cuando llama-3.3-70b agota sus 100 K TPD, llama-3.1-8b-instant sigue disponible.
-// Mismo principio: gemini-2.5-flash (250 RPD) → gemini-2.5-flash-lite (1 000 RPD).
+// Los dos slots NVIDIA usan la misma NVIDIA_API_KEY pero modelos distintos → cuotas
+// independientes: si el primario se agota o cae, el segundo sigue disponible.
 //
 // Variables de entorno (definir las que tengas en Coolify):
-//   GROQ_API_KEY        → activa slots groq + groq_fast
+//   NVIDIA_API_KEY      → activa slots nvidia + nvidia_pro (key nvapi-… de build.nvidia.com)
 //   CEREBRAS_API_KEY    → activa slot cerebras (console.cerebras.ai)
 //   GEMINI_API_KEY      → activa slots gemini + gemini_lite (o GOOGLE_API_KEY)
+//   GROQ_API_KEY        → activa slots groq + groq_fast
 //   OPENAI_API_KEY      → activa slot openai
 //   DEEPSEEK_API_KEY    → activa slot deepseek
+//
+// Modelos NVIDIA configurables con NVIDIA_MODEL / NVIDIA_PRO_MODEL. Otros IDs de
+// alta calidad en build.nvidia.com: meta/llama-3.1-405b-instruct,
+// qwen/qwen3-235b-a22b, moonshotai/kimi-k2-instruct, openai/gpt-oss-120b.
+
+// Endpoint OpenAI-compatible de NVIDIA NIM (todos los modelos comparten esta URL).
+const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions'
 
 const PROVIDERS = {
+  // NVIDIA NIM — primario: el mejor equilibrio calidad/fiabilidad gratis. Llama 3.3
+  // 70B responde rápido y respeta bien el modo JSON.
+  nvidia: {
+    name: 'nvidia',
+    url: NVIDIA_URL,
+    key: () => process.env.NVIDIA_API_KEY,
+    model: () => process.env.NVIDIA_MODEL || 'meta/llama-3.3-70b-instruct',
+    jsonMode: true,
+    priority: 1,
+  },
+  // NVIDIA NIM — pro: máxima calidad de escritura (DeepSeek V3.1). Misma key, otro
+  // modelo → pool de cuota propio y respaldo natural del primario. jsonMode false
+  // porque los modelos grandes de NIM son quisquillosos con response_format; el
+  // prompt ya exige JSON y el parser tolera texto alrededor.
+  nvidia_pro: {
+    name: 'nvidia_pro',
+    url: NVIDIA_URL,
+    key: () => process.env.NVIDIA_API_KEY,
+    model: () => process.env.NVIDIA_PRO_MODEL || 'deepseek-ai/deepseek-v3.1',
+    jsonMode: false,
+    priority: 2,
+  },
   groq: {
     name: 'groq',
     url: 'https://api.groq.com/openai/v1/chat/completions',
     key: () => process.env.GROQ_API_KEY,
     model: () => process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
     jsonMode: true,
+    priority: 6,
   },
   // Mismo key que groq, modelo distinto → pool de cuota propio.
   // Actúa como failover automático cuando llama-3.3-70b agota sus 100 K TPD diarios.
@@ -36,6 +72,7 @@ const PROVIDERS = {
     key: () => process.env.GROQ_API_KEY,
     model: () => 'llama-3.1-8b-instant',
     jsonMode: true,
+    priority: 7,
   },
   // Cerebras: 1 M TPD gratuito, latencia baja, API 100% compatible con OpenAI.
   // Obtén tu key en: https://cloud.cerebras.ai
@@ -45,6 +82,7 @@ const PROVIDERS = {
     key: () => process.env.CEREBRAS_API_KEY,
     model: () => process.env.CEREBRAS_MODEL || 'llama-3.3-70b',
     jsonMode: true,
+    priority: 3,
   },
   // Gemini 2.5 Flash: mejor relación calidad/límite gratuito en 2026 (250 RPD, 250 K TPM).
   gemini: {
@@ -53,6 +91,7 @@ const PROVIDERS = {
     key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
     model: () => process.env.GEMINI_MODEL || 'gemini-2.5-flash',
     jsonMode: false,
+    priority: 4,
   },
   // Mismo key que gemini, modelo lite → 1 000 RPD (4× más que 2.5-flash).
   gemini_lite: {
@@ -61,6 +100,7 @@ const PROVIDERS = {
     key: () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
     model: () => 'gemini-2.5-flash-lite',
     jsonMode: false,
+    priority: 5,
   },
   openai: {
     name: 'openai',
@@ -68,6 +108,7 @@ const PROVIDERS = {
     key: () => process.env.OPENAI_API_KEY,
     model: () => process.env.OPENAI_MODEL || 'gpt-4o-mini',
     jsonMode: true,
+    priority: 8,
   },
   deepseek: {
     name: 'deepseek',
@@ -75,30 +116,35 @@ const PROVIDERS = {
     key: () => process.env.DEEPSEEK_API_KEY,
     model: () => process.env.DEEPSEEK_MODEL || 'deepseek-chat',
     jsonMode: true,
+    priority: 9,
   },
 }
 
-// Devuelve la lista de proveedores configurados (con key disponible).
+// Devuelve la lista de proveedores configurados (con key disponible), ordenados por
+// prioridad (menor primero: NVIDIA → NVIDIA pro → Cerebras → Gemini → Groq → …).
 function availableProviders() {
-  return Object.values(PROVIDERS).filter(p => !!p.key())
+  return Object.values(PROVIDERS)
+    .filter(p => !!p.key())
+    .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
 }
 
 // Elige el proveedor a usar.
-//  - preference 'groq' | 'openai' etc. fuerza uno (si tiene key).
-//  - 'auto' reparte la carga según el contador round-robin (rr).
+//  - preference 'nvidia' | 'gemini' | etc. fuerza uno (si tiene key).
+//  - 'auto' usa el de mayor prioridad disponible (NVIDIA primero).
+//  El parámetro `rr` se mantiene por compatibilidad de firma; el orden lo fija la prioridad.
 function pickProvider(preference, rr = 0) {
   const available = availableProviders()
   if (!available.length) {
-    throw new Error('No hay ningún proveedor de IA configurado. Definí al menos GROQ_API_KEY o CEREBRAS_API_KEY.')
+    throw new Error('No hay ningún proveedor de IA configurado. Definí al menos NVIDIA_API_KEY (build.nvidia.com) o CEREBRAS_API_KEY.')
   }
   if (preference && preference !== 'auto' && PROVIDERS[preference]?.key()) {
     return PROVIDERS[preference]
   }
-  return available[rr % available.length]
+  return available[0]
 }
 
-// Devuelve los proveedores a probar EN ORDEN: primero el preferido (o el del
-// round-robin), y a continuación el resto como respaldo para el failover.
+// Devuelve los proveedores a probar EN ORDEN para el failover: primero el preferido
+// (o el de mayor prioridad en 'auto'), y el resto ordenado por prioridad como respaldo.
 function providersInOrder(preference, rr = 0) {
   const first = pickProvider(preference, rr)
   const rest = availableProviders().filter(p => p.name !== first.name)

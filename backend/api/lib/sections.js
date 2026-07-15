@@ -31,17 +31,52 @@ const ANTICLICHE = `PROHIBIDO (sin excepciones):
 - Positivismo tóxico o pesimismo barato. La realidad es más interesante que los extremos.`
 
 const INTERACCION = `ENGANCHA Y GENERA CONVERSACIÓN:
-- Toma una POSTURA. Un punto de vista claro con el que la gente pueda estar de acuerdo o debatir.
-  Debate sano, no rage bait ni polémica vacía.
+- Toma una POSTURA nítida (ver POLÉMICO PERO REAL). La tibieza no genera comentarios.
 - El gancho inicial tiene menos de 2 segundos para funcionar. Si no para el scroll, fracasa.
-- Cierra siempre con UNA pregunta directa al lector que invite a comentar o etiquetar a alguien.
+- Cierra siempre con UNA pregunta directa al lector que lo obligue a posicionarse (a favor o en
+  contra), no una pregunta de cortesía. Que invite a comentar o a etiquetar a quien piensa distinto.
   Que suene natural, no como formulario.`
+
+// GANCHOS: la parte que más pesa. Se aplica a TODAS las secciones (título + primera línea).
+const GANCHOS = `GANCHOS — EL TÍTULO Y LA PRIMERA LÍNEA SON EL 90% DEL TRABAJO:
+Tienes menos de 2 segundos para frenar el scroll. Escribe el título y la primera línea AL FINAL,
+cuando ya sabes cuál es el dato o la tensión más fuerte de la pieza. Nunca uses el gancho más obvio:
+usa el segundo, el que sorprende. Si el gancho serviría igual para otro artículo, bórralo.
+
+EL TÍTULO debe hacer UNA de estas cosas (elige la más honesta para esta pieza):
+- Afirmación contraintuitiva que reta a lo que "todos dan por hecho" (respaldada por el dato real).
+- Tensión o conflicto explícito: quién gana, quién pierde, qué se rompe, a quién le conviene.
+- Cifra o hecho concreto que descoloca ("X acaba de hacer Y", no "las novedades sobre Y").
+- Pregunta incómoda que el lector no se había atrevido a hacerse.
+PROHIBIDO en títulos: relleno tipo "todo lo que necesitas saber", "la guía definitiva", "esto es lo
+que pasó", "lo que nadie te contó", clickbait vacío que el texto no cumple, o describir el tema en
+vez de tomar postura. El título promete algo real y el contenido lo entrega.
+
+LA PRIMERA LÍNEA del contenido (el hook, sin título dentro del cuerpo):
+- Entra por el medio de la acción o del conflicto. Cero contexto, cero preámbulo, cero "recientemente".
+- Una sola idea, filosa, que obligue a leer la segunda línea. Frase corta.
+- Puede ser una afirmación tajante, un dato que incomoda o una contradicción evidente. Nunca una
+  pregunta retórica vacía ni una definición de diccionario.
+- Las 2-3 primeras líneas son las únicas visibles antes del "ver más" de LinkedIn: que ahí ya haya
+  golpe y postura, no calentamiento.`
+
+// POLÉMICO PERO REAL: la controversia nace del hecho verificable, nunca del invento.
+const POLEMICA = `POLÉMICO PERO REAL (genera conversación de verdad):
+- Toma una postura NÍTIDA y defendible sobre algo que a la gente le importa. Que se pueda estar en
+  contra con argumentos. Lo tibio no se comenta; lo claro sí.
+- La polémica sale del HECHO real y de tu lectura honesta de él, JAMÁS de exagerar, tergiversar o
+  atacar personas. Incomoda con la verdad, no con el insulto.
+- Nombra al elefante en la sala: lo que muchos piensan y nadie dice, el interés que nadie menciona,
+  la contradicción que el discurso oficial esconde.
+- Divide con criterio: deja claro de qué lado estás y por qué, con argumentos, no con desprecio.
+- Cero rage bait vacío, cero difamación, cero dato inventado. La credibilidad es el activo: una sola
+  mentira lo quema. El objetivo es ser polémico y verificable a la vez.`
 
 const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactamente estas claves:
 {
-  "title": "título atractivo y con gancho",
+  "title": "título con gancho real: postura, tensión o dato que frena el scroll (ver GANCHOS)",
   "slug": "slug-en-minusculas-con-guiones",
-  "excerpt": "una sola línea que genere ganas de leer",
+  "excerpt": "una sola línea que suba la apuesta del título sin repetirlo, y dé ganas de leer",
   "category": "la categoría de esta sección",
   "tags": ["3", "a", "6", "tags", "cortos"],
   "content": "artículo completo en markdown",
@@ -56,7 +91,7 @@ const LARGO  = 'Largo: entre 1700 y 2400 caracteres totales (aprox. 300-420 pala
 const CORTO  = 'Largo: CORTO. Máximo 1200 caracteres totales (aprox. 160-200 palabras). Cada frase se gana su lugar.'
 const BREVE  = 'Largo: BREVE y potente. Máximo 900 caracteres totales (aprox. 120-150 palabras). Si una línea no aporta, fuera.'
 
-const withWrap = (s) => `${s}\n\n${ANTICLICHE}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrap = (s) => `${s}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 // ─── Sección 1: NOTICIAS ─────────────────────────────────────────────────────
 // Noticia real importante → explicada con voz propia, humor y análisis honesto.
@@ -494,7 +529,7 @@ const BASES = [
   },
 ]
 
-const withWrapFn = (s) => `${s}\n\n${ANTICLICHE}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrapFn = (s) => `${s}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 const SECTIONS = []
 for (const b of BASES) {
