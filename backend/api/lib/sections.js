@@ -72,6 +72,29 @@ const POLEMICA = `POLÉMICO PERO REAL (genera conversación de verdad):
 - Cero rage bait vacío, cero difamación, cero dato inventado. La credibilidad es el activo: una sola
   mentira lo quema. El objetivo es ser polémico y verificable a la vez.`
 
+// Método de divulgación inspirado en Teresa Gao (@teresagao68): intérprete de la ONU que
+// explica China/economía/geopolítica al público latino. Su sello: traducir lo complejo a lo
+// cotidiano, revelar el sistema oculto detrás de lo visible, y dejar al lector "más listo".
+const METODO_DIVULGACION = `MÉTODO DE EXPLICACIÓN (divulgación que engancha y de verdad enseña):
+- REVELA EL MECANISMO OCULTO: toma algo visible y cotidiano (una moda, una noticia, una cifra curiosa,
+  un producto) y explica el SISTEMA que hay detrás — el negocio, el interés, la causa real que casi
+  nadie ve. El valor no es el dato suelto, es el "ahhh, POR ESO pasa".
+- TRADUCE LO COMPLEJO A LO SIMPLE: como un buen intérprete, baja lo técnico o abstracto (economía,
+  geopolítica, tecnología, IA) a lenguaje de conversación, con UNA analogía cotidiana. Si alguien sin
+  contexto no lo entendería, reescríbelo. Cero jerga, cero tecnicismo sin explicar.
+- DATO DURO + CARA HUMANA: combina una cifra concreta y verificable con un ejemplo o historia humana
+  que la haga tangible. El número prueba; la anécdota se recuerda. ("1.400 millones de personas… y no
+  encuentran 11 para el Mundial" pega más que "China tiene mucha población").
+- MITO VS. REALIDAD: cuando aplique, contrasta lo que "todos creen" con lo que de verdad pasa. Ese
+  choque es oro para la curiosidad y el debate, y posiciona tu criterio.
+- ATERRIZA EN EL LECTOR: cierra mostrando qué significa esto PARA ÉL — una oportunidad que puede
+  aprovechar, una lección aplicable o una forma más aguda de leer el mundo. Que salga con más capacidad
+  de análisis que cuando llegó, no solo "informado".
+- FORMATOS DE TÍTULO que funcionan en este estilo (elige el más honesto para la pieza): la paradoja con
+  cifra ("X millones y ni uno hace Y"), el "por qué X NUNCA/SIEMPRE…", o "qué es X: la [moda/noticia]
+  que esconde [el negocio/la razón] que nadie te cuenta". El título promete una revelación concreta y
+  el texto la cumple — nunca clickbait vacío.`
+
 // Psicología de la atención: por qué la gente se detiene, sigue leyendo y comparte.
 const PSICOLOGIA = `PSICOLOGÍA DE LA ATENCIÓN (aplícala en cada pieza, es lo que decide si te leen o no):
 - BRECHA DE CURIOSIDAD: abre una pregunta en la mente del lector y NO la respondas de inmediato. El cerebro
@@ -134,7 +157,7 @@ const LARGO  = 'Largo: entre 1700 y 2400 caracteres totales (aprox. 300-420 pala
 const CORTO  = 'Largo: CORTO. Máximo 1200 caracteres totales (aprox. 160-200 palabras). Cada frase se gana su lugar.'
 const BREVE  = 'Largo: BREVE y potente. Máximo 900 caracteres totales (aprox. 120-150 palabras). Si una línea no aporta, fuera.'
 
-const withWrap = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrap = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${METODO_DIVULGACION}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 // ─── Sección 1: NOTICIAS ─────────────────────────────────────────────────────
 // Noticia real importante → explicada con voz propia, humor y análisis honesto.
@@ -572,7 +595,7 @@ const BASES = [
   },
 ]
 
-const withWrapFn = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrapFn = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${METODO_DIVULGACION}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 const SECTIONS = []
 for (const b of BASES) {
