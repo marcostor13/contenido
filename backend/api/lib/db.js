@@ -38,7 +38,7 @@ const DEFAULT_SETTINGS = {
   lastRunAt: null, // última generación automática
   lastError: null, // último error registrado
   category: 'Tecnología', // categoría por defecto para lo autogenerado
-  provider: 'auto', // 'auto' (prioridad NVIDIA→Cerebras→Gemini→Groq) | 'nvidia' | 'gemini' | …
+  provider: 'auto', // 'auto' (NVIDIA con failover entre modelos) | 'nvidia' | 'nvidia_2' | …
   _rr: 0, // contador round-robin (compatibilidad)
   _sectionRr: 0, // puntero de rotación de secciones entre ciclos
   _cycleCursor: 0, // etapa dentro del ciclo (0 = aprender; N = generar sección N)

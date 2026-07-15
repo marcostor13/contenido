@@ -143,14 +143,12 @@ import Base from '../layouts/Base.astro'
       <div class="field">
         <label class="label">Motor de IA</label>
         <select id="s-provider" class="input">
-          <option value="auto">Automático (prioridad NVIDIA → Cerebras → Gemini → Groq)</option>
-          <option value="nvidia">NVIDIA — Llama 3.3 70B (gratis, recomendado)</option>
-          <option value="nvidia_pro">NVIDIA Pro — Qwen3 235B (gratis, máxima calidad)</option>
-          <option value="cerebras">Cerebras (gratis)</option>
-          <option value="gemini">Gemini (gratis)</option>
-          <option value="groq">Groq (gratis, solo respaldo)</option>
-          <option value="deepseek">DeepSeek (pago)</option>
-          <option value="openai">OpenAI (pago)</option>
+          <option value="auto">Automático (NVIDIA, failover entre modelos)</option>
+          <option value="nvidia">NVIDIA — Llama 3.3 70B (primario)</option>
+          <option value="nvidia_2">NVIDIA — GPT-OSS 120B</option>
+          <option value="nvidia_3">NVIDIA — Llama 3.1 405B (máxima calidad)</option>
+          <option value="nvidia_4">NVIDIA — Qwen3.5 122B</option>
+          <option value="nvidia_5">NVIDIA — Nemotron 3 Super 120B</option>
         </select>
       </div>
       <div class="field">
