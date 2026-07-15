@@ -3,6 +3,7 @@
 // POST -> actualiza enabled / frequencyMinutes / provider / category (admin).
 const { getSettings, saveSettings } = require('./lib/db')
 const { availableProviders, PROVIDERS } = require('./lib/llm')
+const { SECTIONS } = require('./lib/sections')
 const { authed } = require('./lib/auth')
 
 const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
@@ -28,6 +29,10 @@ exports.handler = async (event) => {
     const patch = {}
     if (typeof body.enabled === 'boolean') patch.enabled = body.enabled
     if (typeof body.rotateSections === 'boolean') patch.rotateSections = body.rotateSections
+    // Cuántas secciones genera por ciclo (1..total de secciones).
+    if (body.sectionsPerCycle != null) {
+      patch.sectionsPerCycle = Math.max(1, Math.min(SECTIONS.length, Math.round(Number(body.sectionsPerCycle)) || 2))
+    }
     // Frecuencia en minutos (mínimo de seguridad 5 min, máximo 7 días).
     // Se acepta frequencyHours legado por compatibilidad.
     const MIN_FREQ = 5, MAX_FREQ = 10080

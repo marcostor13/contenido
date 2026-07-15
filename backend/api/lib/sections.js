@@ -72,6 +72,48 @@ const POLEMICA = `POLÉMICO PERO REAL (genera conversación de verdad):
 - Cero rage bait vacío, cero difamación, cero dato inventado. La credibilidad es el activo: una sola
   mentira lo quema. El objetivo es ser polémico y verificable a la vez.`
 
+// Psicología de la atención: por qué la gente se detiene, sigue leyendo y comparte.
+const PSICOLOGIA = `PSICOLOGÍA DE LA ATENCIÓN (aplícala en cada pieza, es lo que decide si te leen o no):
+- BRECHA DE CURIOSIDAD: abre una pregunta en la mente del lector y NO la respondas de inmediato. El cerebro
+  necesita cerrar lo incompleto; esa tensión es la que lo hace seguir. Pero cúmplela SIEMPRE: brecha sin
+  respuesta al final = clickbait, y el lector no vuelve.
+- RUPTURA DE PATRÓN: lo inesperado despierta. Un dato contraintuitivo, una postura contraria a lo que todos
+  repiten, un inicio que no parece el típico post. Si suena a lo que ya vieron mil veces, el cerebro lo filtra.
+- EMOCIÓN CON PROPÓSITO: asombro, sorpresa, indignación sana, orgullo. La gente comparte lo que la hace SENTIR
+  y lo que la hace quedar bien al compartirlo (útil, inteligente, con criterio). Elige UNA emoción dominante
+  por pieza y construye hacia ella.
+- LO CONCRETO GANA: cifras específicas, escenas visuales, nombres reales. "Perdió 3 horas buscando un correo"
+  pega más que "perdemos mucho tiempo". El cerebro recuerda imágenes, no abstracciones.
+- RECOMPENSA FINAL (PAYOFF): el cierre debe pagar la promesa del gancho con creces. Si el lector termina y
+  siente "valió la pena", comenta, guarda y comparte. Si siente "tanto para esto", te olvida.`
+
+// Estructura del post para LinkedIn (donde se publica el texto).
+const ESTRUCTURA_LINKEDIN = `ESTRUCTURA DEL POST (LinkedIn — el texto se publica ahí):
+- AIRE VISUAL: párrafos de 1-2 líneas, una idea por párrafo, saltos de línea generosos. Un muro de texto
+  mata la lectura en el celular. El formato ligero aumenta el tiempo de lectura (dwell time), y ese tiempo
+  es la señal que el algoritmo más premia.
+- RITMO: alterna frases cortas con alguna más larga. Que el ojo baje solo, como un tobogán: cada línea
+  debe empujar a la siguiente.
+- El límite duro es 3000 caracteres con formato y hashtags; respeta el tope de largo indicado abajo.`
+
+// Guion de video corto: el mismo contenido se graba para TikTok, Reels, Shorts y Facebook.
+const GUION_VIDEO = `GUION DE VIDEO (campo "videoScript" del JSON — OBLIGATORIO):
+Además del post, escribe el guion para grabar un VIDEO VERTICAL de 40-60 segundos (TikTok, Instagram Reels,
+YouTube Shorts, Facebook) sobre el MISMO contenido. NO es el post leído en voz alta: es la versión ORAL,
+pensada para hablarse a cámara. Reglas:
+- Lenguaje HABLADO y natural: frases cortas, como se conversa; nada de sintaxis de texto escrito.
+- Estructura de retención:
+  · GANCHO (0-3 seg): una frase dicha de frente que frene el scroll — pregunta directa, dato contraintuitivo
+    o inicio de historia in medias res. Máximo ~15 palabras. Sin "hola, ¿cómo están?": eso mata el video.
+  · PROMESA (3-8 seg): qué va a ganar si se queda, con tus palabras.
+  · DESARROLLO (8-45 seg): la sustancia o la historia, con 1 bucle abierto a la mitad para sostener la atención.
+  · REMATE (45-55 seg): el payoff — la revelación, el dato que cierra, tu postura. Debe pagar el gancho.
+  · CIERRE (últimos 3-5 seg): UNA pregunta para los comentarios + invitación breve a seguir. Si puedes, que la
+    última frase conecte con la primera (efecto bucle: el video se puede volver a ver de corrido).
+- Formato del guion: texto plano, una frase por línea, con marcas de sección entre corchetes: [GANCHO],
+  [PROMESA], [DESARROLLO], [REMATE], [CIERRE]. Sin indicaciones de cámara ni efectos: solo lo que se DICE.
+- Mismo dialecto, misma honestidad y mismos anti-clichés que el post.`
+
 const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactamente estas claves:
 {
   "title": "título con gancho real: postura, tensión o dato que frena el scroll (ver GANCHOS)",
@@ -80,6 +122,7 @@ const JSON_SPEC = `Devuelve SIEMPRE un único objeto JSON válido con exactament
   "category": "la categoría de esta sección",
   "tags": ["3", "a", "6", "tags", "cortos"],
   "content": "artículo completo en markdown",
+  "videoScript": "guion de video vertical de 40-60s en texto plano con marcas [GANCHO], [PROMESA], [DESARROLLO], [REMATE], [CIERRE]",
   "viralityScore": 0,
   "viralityNotes": "1-2 frases sobre por qué puede volverse viral"
 }`
@@ -91,7 +134,7 @@ const LARGO  = 'Largo: entre 1700 y 2400 caracteres totales (aprox. 300-420 pala
 const CORTO  = 'Largo: CORTO. Máximo 1200 caracteres totales (aprox. 160-200 palabras). Cada frase se gana su lugar.'
 const BREVE  = 'Largo: BREVE y potente. Máximo 900 caracteres totales (aprox. 120-150 palabras). Si una línea no aporta, fuera.'
 
-const withWrap = (s) => `${s}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrap = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 // ─── Sección 1: NOTICIAS ─────────────────────────────────────────────────────
 // Noticia real importante → explicada con voz propia, humor y análisis honesto.
@@ -529,7 +572,7 @@ const BASES = [
   },
 ]
 
-const withWrapFn = (s) => `${s}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${LINKEDIN_LIMIT_NOTE}`
+const withWrapFn = (s) => `${s}\n\n${PSICOLOGIA}\n\n${ANTICLICHE}\n\n${GANCHOS}\n\n${POLEMICA}\n\n${INTERACCION}\n\n${ESTRUCTURA_LINKEDIN}\n\n${GUION_VIDEO}\n\n${LINKEDIN_LIMIT_NOTE}`
 
 const SECTIONS = []
 for (const b of BASES) {
