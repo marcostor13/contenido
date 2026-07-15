@@ -5,7 +5,7 @@
 // mejores modelos abiertos (DeepSeek, Llama, Qwen, Kimi…) con endpoint compatible
 // con OpenAI. Los demás quedan como respaldo si NVIDIA no tiene key o falla.
 //   1. nvidia      — meta/llama-3.3-70b-instruct    NVIDIA NIM, gratis, muy fiable
-//   2. nvidia_pro  — deepseek-ai/deepseek-v3.1       NVIDIA NIM, gratis, máxima calidad
+//   2. nvidia_pro  — qwen/qwen3-235b-a22b            NVIDIA NIM, gratis, máxima calidad
 //   3. cerebras    — llama-3.3-70b                   1 M TPD gratis, latencia baja
 //   4. gemini      — gemini-2.5-flash                250 RPD / 250 K TPM gratis
 //   5. gemini_lite — gemini-2.5-flash-lite           1 000 RPD (4× más), mismo key
@@ -27,8 +27,8 @@
 //   DEEPSEEK_API_KEY    → activa slot deepseek
 //
 // Modelos NVIDIA configurables con NVIDIA_MODEL / NVIDIA_PRO_MODEL. Otros IDs de
-// alta calidad en build.nvidia.com: meta/llama-3.1-405b-instruct,
-// qwen/qwen3-235b-a22b, moonshotai/kimi-k2-instruct, openai/gpt-oss-120b.
+// alta calidad verificados en build.nvidia.com: meta/llama-3.1-405b-instruct,
+// moonshotai/kimi-k2-instruct, openai/gpt-oss-120b, deepseek-ai/deepseek-r1.
 
 // Endpoint OpenAI-compatible de NVIDIA NIM (todos los modelos comparten esta URL).
 const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions'
@@ -43,18 +43,21 @@ const PROVIDERS = {
     model: () => process.env.NVIDIA_MODEL || 'meta/llama-3.3-70b-instruct',
     jsonMode: true,
     priority: 1,
+    // El tier gratuito de NIM encola las peticiones: damos margen amplio de espera.
+    timeoutMs: 120000,
   },
-  // NVIDIA NIM — pro: máxima calidad de escritura (DeepSeek V3.1). Misma key, otro
-  // modelo → pool de cuota propio y respaldo natural del primario. jsonMode false
-  // porque los modelos grandes de NIM son quisquillosos con response_format; el
-  // prompt ya exige JSON y el parser tolera texto alrededor.
+  // NVIDIA NIM — pro: máxima calidad de escritura (Qwen3 235B, ID verificado en el
+  // catálogo). Misma key, otro modelo → pool de cuota propio y respaldo natural del
+  // primario. jsonMode false porque los modelos grandes de NIM son quisquillosos con
+  // response_format; el prompt ya exige JSON y el parser tolera texto alrededor.
   nvidia_pro: {
     name: 'nvidia_pro',
     url: NVIDIA_URL,
     key: () => process.env.NVIDIA_API_KEY,
-    model: () => process.env.NVIDIA_PRO_MODEL || 'deepseek-ai/deepseek-v3.1',
+    model: () => process.env.NVIDIA_PRO_MODEL || 'qwen/qwen3-235b-a22b',
     jsonMode: false,
     priority: 2,
+    timeoutMs: 120000,
   },
   groq: {
     name: 'groq',
@@ -161,8 +164,10 @@ async function chat(provider, messages, { json = false, temperature = 0.8, maxTo
   }
   if (json && provider.jsonMode !== false) body.response_format = { type: 'json_object' }
 
+  // Timeout efectivo: el del proveedor (p. ej. NVIDIA free, más lento) tiene prioridad.
+  const effTimeout = provider.timeoutMs || timeoutMs
   const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs)
+  const timer = setTimeout(() => ctrl.abort(), effTimeout)
   let res
   try {
     res = await fetch(provider.url, {
@@ -175,7 +180,7 @@ async function chat(provider, messages, { json = false, temperature = 0.8, maxTo
       signal: ctrl.signal,
     })
   } catch (e) {
-    if (e.name === 'AbortError') throw new Error(`Tiempo de espera agotado con ${provider.name} (${timeoutMs}ms)`)
+    if (e.name === 'AbortError') throw new Error(`Tiempo de espera agotado con ${provider.name} (${effTimeout}ms)`)
     throw new Error(`Fallo de red con ${provider.name}: ${e.message}`)
   } finally {
     clearTimeout(timer)

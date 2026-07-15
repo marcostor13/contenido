@@ -107,8 +107,10 @@ async function generateArticle({
     { role: 'user', content: userPrompt },
   ]
   // Con failover: si un proveedor falla (p. ej. saldo), usa el otro automáticamente.
-  // maxTokens amplio: la respuesta incluye el post Y el guion de video.
-  const { content: raw, provider } = await chatResilient(messages, { providerPref, rr, json: true, temperature: 0.85, maxTokens: 3800 })
+  // maxTokens holgado para el post + el guion de video, pero acotado: un tope alto
+  // dispara la latencia (timeouts en el tier gratis) y el tamaño de la petición
+  // (límites TPM de proveedores pequeños). El post ≤3000 chars + guion caben de sobra.
+  const { content: raw, provider } = await chatResilient(messages, { providerPref, rr, json: true, temperature: 0.85, maxTokens: 2600 })
 
   let a = parseArticle(raw)
   if (!a.title || !a.content) throw new Error('El modelo no devolvió título o contenido válidos.')
