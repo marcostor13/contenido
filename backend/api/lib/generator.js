@@ -4,10 +4,9 @@
 //  Paso 3: analizar viralidad y storytelling, generar el artículo final y
 //          guardarlo en la base con la estructura del proyecto.
 //
-// El sistema genera VARIAS secciones en la misma corrida (misma frecuencia):
-//   - historias     (noticias reales con moraleja, ahora más animadas y sarcásticas)
-//   - productividad  (herramientas, tips y trucos de productividad con tecnología e IA)
-//   - potencial      (reflexiones y tips para potenciar al ser humano)
+// El sistema genera DOS temas (IA + productividad), cada uno con variante larga y corta:
+//   - herramientas   (nueva herramienta/novedad de IA y cómo te hace más productivo; tipo 'news')
+//   - productividad  (cómo usar la IA para producir más y mejor, paso a paso; tipo 'topic')
 // Ver `api/lib/sections.js` para el tono y la configuración de cada sección.
 
 const { articles, getSettings, saveSettings } = require('./db')
@@ -84,7 +83,7 @@ ${a.content}
 //  topic   = string cuando lo dispara el admin manualmente.
 //  angle   = ángulo rotativo para secciones que no parten de noticia.
 async function generateArticle({
-  section = 'historias', source = null, topic = null, angle = null,
+  section = 'herramientas', source = null, topic = null, angle = null,
   providerPref = 'auto', rr = 0, category = null, sourceKey = null, playbook = '',
   reference = null,
 }) {
@@ -177,7 +176,7 @@ async function generateForSection(sec, { providerPref, rr, usedKeys, playbook })
     return { ok: true, section: sec.key, article }
   }
 
-  // Sección por ángulo rotativo (productividad, potencial humano).
+  // Sección por ángulo rotativo (productividad con IA).
   const picked = pickFreshAngle(sec, usedKeys)
   if (!picked) return { skipped: true, section: sec.key, reason: 'sin ángulos configurados' }
 

@@ -11,26 +11,28 @@
 // User-Agent tipo navegador: algunos feeds sociales (Reddit) rechazan bots genéricos.
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
 
-// ─── 1) Noticias (Google Noticias) ───────────────────────────────────────────
-const GN_TOP = 'https://news.google.com/rss?hl=es-419&gl=US&ceid=US:es-419'
+// ─── 1) Novedades de IA (Google Noticias) ─────────────────────────────────────
+// Enfocado en herramientas/novedades de IA y productividad (los dos temas del sistema).
+const GN_TOP = 'https://news.google.com/rss/search?q=inteligencia+artificial+OR+IA+OR+ChatGPT&hl=es-419&gl=US&ceid=US:es-419'
 const GN_QUERIES = [
-  'https://news.google.com/rss/search?q=inteligencia+artificial+OR+tecnología+OR+innovación&hl=es-419&gl=US&ceid=US:es-419',
-  'https://news.google.com/rss/search?q=economía+OR+mercados+OR+crisis+OR+inflación+OR+dinero&hl=es-419&gl=US&ceid=US:es-419',
-  'https://news.google.com/rss/search?q=ciencia+OR+salud+OR+clima+OR+medio+ambiente&hl=es-419&gl=US&ceid=US:es-419',
-  'https://news.google.com/rss/search?q=geopolítica+OR+conflicto+OR+sociedad+OR+derechos&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=nueva+herramienta+de+IA+OR+lanzamiento+de+IA+OR+ChatGPT+OR+Gemini+OR+Claude&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=IA+productividad+OR+automatización+OR+agentes+de+IA&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=inteligencia+artificial+trabajo+OR+empleo+OR+empresas&hl=es-419&gl=US&ceid=US:es-419',
+  'https://news.google.com/rss/search?q=herramientas+tecnología+OR+apps+OR+software+productividad&hl=es-419&gl=US&ceid=US:es-419',
 ]
 
 // ─── 2) Redes sociales en tendencia (feeds públicos, sin key) ─────────────────
-// Reddit: top del día = lo más votado en las últimas 24 h de cada comunidad.
+// Reddit: top del día = lo más votado en las últimas 24 h. Subs de IA / herramientas /
+// productividad para captar lo que está sonando AHORA en el nicho.
 const REDDIT_SUBS = [
-  'technology', 'artificial', 'Futurology', 'worldnews',
-  'business', 'Economics', 'todayilearned', 'InternetIsBeautiful',
+  'artificial', 'ChatGPT', 'OpenAI', 'ClaudeAI',
+  'productivity', 'InternetIsBeautiful', 'technology', 'SideProject',
 ]
 const REDDIT_FEEDS = REDDIT_SUBS.map(s => `https://www.reddit.com/r/${s}/top/.rss?t=day&limit=25`)
-// Hacker News: portada (historias en tendencia con tracción real).
+// Hacker News: portada (tracción real) + Show HN (productos y herramientas nuevas).
 const HN_FEEDS = [
   'https://hnrss.org/frontpage?points=50',
-  'https://hnrss.org/newest?points=150',
+  'https://hnrss.org/show?points=30',
 ]
 const TRENDING_FEEDS = [...REDDIT_FEEDS, ...HN_FEEDS]
 

@@ -33,7 +33,7 @@ exports.handler = async (event) => {
     const s = await getSettings()
     const article = await generateArticle({
       topic,
-      section: body.section || 'historias',
+      section: body.section || 'herramientas',
       providerPref: s.provider,
       rr: s._rr || 0,
       category: body.category || undefined,

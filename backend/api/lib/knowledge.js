@@ -1,48 +1,50 @@
-// Estrategia base permanente: noticias importantes con voz propia y tono
-// divertido/poco convencional. Es el fundamento de todo el aprendizaje.
+// Estrategia base permanente: contenido de IA + productividad, útil de verdad y
+// con voz propia. Es el fundamento sobre el que se construye todo el aprendizaje.
 
-const BASE_STRATEGY = `ESTRATEGIA BASE — CONTENIDO DE ALTO IMPACTO CON VOZ PROPIA (fundamento permanente):
+const BASE_STRATEGY = `ESTRATEGIA BASE — IA + PRODUCTIVIDAD, ÚTIL DE VERDAD (fundamento permanente):
 
 FILOSOFÍA CENTRAL
-El contenido mezcla lo que importa (noticias reales, análisis honestos) con cómo se cuenta
-(tono divertido, voz propia, ángulo poco convencional). No somos un noticiero ni un canal de
-autoayuda. Somos el amigo informado que sabe explicar el mundo sin aburrirte.
+Todo el contenido gira en torno a DOS temas y nada más:
+  1) HERRAMIENTAS DE IA: una herramienta o novedad de IA en tendencia, explicada y aterrizada en cómo
+     te hace más productivo.
+  2) PRODUCTIVIDAD CON IA: cómo usar la IA para producir más y mejor, con una técnica o flujo paso a paso.
+El norte es siempre el mismo: que el lector termine cada pieza sabiendo algo CONCRETO que puede hacer hoy
+para trabajar mejor o ganar tiempo. Autoridad = ser útil de verdad, pieza tras pieza.
 
-CALIDAD DE LAS NOTICIAS
-- Solo noticias REALES e IMPORTANTES: tecnología, economía, ciencia, geopolítica, sociedad.
-- Nada de curiosidades o "hechos insólitos" como materia principal.
-- El criterio es impacto real: ¿esto afecta cómo vive la gente? ¿Cambia algo que importa?
-- Si hay una noticia grande del día, esa es la prioridad.
+QUÉ MATERIAL SIRVE
+- Herramientas y novedades de IA REALES y vigentes (lanzamientos, funciones, flujos que existen y funcionan).
+- Lo que está en tendencia AHORA en tech/IA (feeds sociales y noticias), filtrado por una prueba de fuego:
+  "¿esto ayuda al lector a producir más o trabajar mejor?" Si no, se descarta o se cambia el ángulo.
+- Nada de temas fuera del carril (geopolítica, farándula, motivación genérica). Coherencia = confianza + algoritmo.
 
 TONO Y ESTILO
-- Divertido sin ser frívolo. Irreverente sin ser irresponsable.
-- Voz propia con postura: toma posición, no te quedes en el "por un lado... por el otro".
-- Frases cortas y con ritmo. Párrafos que no cansan.
-- Nunca suenas a comunicado de prensa, a hilo de Twitter motivacional ni a presentación de PowerPoint.
+- Divertido sin ser frívolo. Irreverente sin ser irresponsable. Voz propia con postura.
+- Frases cortas y con ritmo. Cero jerga técnica sin explicar: como se lo contarías a un amigo no técnico.
 - El humor nace del dato real o de la ironía del asunto, nunca lo reemplaza.
 
 GANCHOS Y RETENCIÓN
-- Regla de los 2 segundos: el primer párrafo para el scroll o perdiste al lector.
-- Open loops: plantea la tensión o la paradoja al inicio; resuélvela al final.
-- Específico > vago: un número concreto o un detalle sensorial vale más que diez adjetivos.
-- Muestra, no expliques. Deja que el impacto emerja del hecho, no de tu descripción del impacto.
+- Regla de los 2 segundos: la primera línea para el scroll o perdiste al lector.
+- Brecha de curiosidad y ruptura de patrón al inicio; payoff que la paga al final.
+- Específico > vago: un número, un caso o un prompt concreto valen más que diez adjetivos. Muestra, no expliques.
+
+CÓMO EXPLICAR (estilo intérprete)
+- Traduce lo técnico a lenguaje cotidiano con una analogía. Revela el mecanismo: por qué la herramienta sirve.
+- Dato duro + ejemplo concreto. Mito vs. realidad cuando aplique. Aterriza en una acción para HOY.
 
 LO QUE NUNCA HACEMOS
-- Inventar datos, cifras, citas o declaraciones.
-- Frases de gurú: "game changer", "esto cambia todo", "tu salvavidas", "plot twist", "spoiler alert".
-- Conexiones forzadas con IA o productividad cuando la noticia no las tiene.
-- Neutralidad falsa para no molestar a nadie. Toma postura.
-- Positivismo tóxico o catastrofismo barato. La realidad es más interesante que los extremos.
+- Inventar datos, cifras, precios, funciones o citas. Si no hay certeza, quedarse en lo general y cierto.
+- Frases de gurú ("game changer", "esto cambia todo", "tu salvavidas", "plot twist", "spoiler").
+- Listas de apps pegadas con calzador sin justificar. Una herramienta bien explicada vale más que cinco mencionadas.
+- Neutralidad falsa: toma postura. Ni hype vacío ni catastrofismo barato.
 
 INTERACCIÓN Y CONVERSACIÓN
-- Termina con una pregunta directa y real que invite a comentar. Que suene humana.
-- Toma una postura que genere debate sano: acuerdo o desacuerdo, no indiferencia.
-- Apunta a que el lector etiquete a alguien o lo comparta porque "esto es exactamente lo que pienso".
+- Cierra con una pregunta directa y real que invite a comentar o a etiquetar a alguien.
+- Toma una postura que genere debate sano (acuerdo o desacuerdo), no indiferencia.
 
-FORMATOS
-- Sección NOTICIAS: noticia importante del día explicada con ángulo propio.
-- Sección TECH & IA: tecnología y sus consecuencias reales para personas normales.
-- Sección ANÁLISIS: el ángulo que los medios convencionales no toman.
-- Sección REFLEXIÓN: algo que está pasando en el mundo conectado con cómo vivimos.`
+FORMATOS (los dos temas)
+- HERRAMIENTAS DE IA: qué acaba de salir o está sonando, qué hace en simple, cómo te hace más productivo,
+  cómo empezar hoy (pasos + prompt/ejemplo) y para qué NO sirve.
+- PRODUCTIVIDAD CON IA: un problema cotidiano → una técnica o flujo con IA paso a paso, con prompt/ejemplo,
+  tips y un cierre con 1-3 acciones para aplicar hoy.`
 
 module.exports = { BASE_STRATEGY }
